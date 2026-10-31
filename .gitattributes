@@ -1,0 +1,3 @@
+# gradlew precisa de fim de linha Unix para rodar no Linux/macOS
+gradlew text eol=lf
+*.sh text eol=lf

@@ -1,0 +1,54 @@
+[versions]
+agp = "9.1.1"
+kotlin = "2.3.21"
+playServicesWearable = "20.0.1"
+composeBom = "2026.05.00"
+composeMaterial = "1.6.1"
+composeFoundation = "1.6.1"
+wearToolingPreview = "1.0.0"
+activityCompose = "1.13.0"
+coreSplashscreen = "1.2.0"
+material3Android = "1.4.0"
+composeMaterial3 = "1.6.1"
+lifecycleCommon = "2.10.0"
+lifecycleRuntimeCompose = "2.10.0"
+hilt = "2.59.2"
+ksp = "2.3.7"
+robolectric = "4.16.1"
+junit = "4.13.2"
+mockk = "1.14.9"
+coreKtx = "1.18.0"
+activityKtx = "1.13.0"
+
+[libraries]
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+ui = { group = "androidx.compose.ui", name = "ui" }
+ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
+compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
+wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
+compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
+lifecycle-common = { group = "androidx.lifecycle", name = "lifecycle-common", version.ref = "lifecycleCommon" }
+lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+devtools-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}

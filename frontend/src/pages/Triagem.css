@@ -1,0 +1,547 @@
+
+.triagem-tela {
+  min-height: 100vh;
+  background: #f3f7fb;
+  color: #233b57;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.triagem-cabecalho {
+  background: white;
+  padding: 18px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-radius: 0 0 16px 16px;
+}
+
+.triagem-marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.triagem-logo {
+  width: 52px;
+  height: 52px;
+  background: #eaf3fc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.triagem-logo img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.triagem-marca h1 {
+  font-size: 19px;
+  margin: 0;
+}
+
+.triagem-marca p {
+  font-size: 12px;
+  margin: 4px 0 0;
+  color: #7c91a6;
+}
+
+.triagem-etapas {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.triagem-etapa-feita {
+  color: #459b7c;
+  font-weight: 600;
+}
+
+.triagem-etapa-atual {
+  color: #3186ca;
+  font-weight: 800;
+}
+
+.triagem-etapa-pendente {
+  color: #9aabba;
+}
+
+.triagem-pagina {
+  width: min(100% - 32px, 1000px);
+  margin: 24px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.triagem-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 10px 4px;
+}
+
+.triagem-etiqueta {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #3988c7;
+}
+
+.triagem-topo h2 {
+  margin: 8px 0 5px;
+  font-size: 28px;
+}
+
+.triagem-topo p {
+  margin: 0;
+  color: #70849c;
+  font-size: 15px;
+}
+
+.triagem-progresso {
+  min-width: 190px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #426485;
+}
+
+.triagem-barra {
+  width: 100%;
+  height: 9px;
+  background: #dce9f5;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.triagem-barra div {
+  height: 100%;
+  background: #3988c7;
+  border-radius: 20px;
+  transition: width 0.2s;
+}
+
+.triagem-chat {
+  height: 290px;
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 20px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 6px 24px rgba(32, 72, 110, 0.045);
+}
+
+.triagem-linha {
+  display: flex;
+  width: 100%;
+}
+
+.triagem-esquerda {
+  justify-content: flex-start;
+}
+
+.triagem-direita {
+  justify-content: flex-end;
+}
+
+.triagem-balao {
+  max-width: 78%;
+  min-width: 160px;
+  padding: 14px 18px;
+  border-radius: 16px;
+}
+
+.triagem-balao strong {
+  font-size: 12px;
+}
+
+.triagem-balao p {
+  margin: 7px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.triagem-assistente {
+  background: #eaf3fc;
+  color: #294766;
+  border-bottom-left-radius: 5px;
+}
+
+.triagem-assistente strong {
+  color: #2e82c5;
+}
+
+.triagem-paciente {
+  background: #3988c7;
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.triagem-responder {
+  background: white;
+  padding: 22px;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(32, 72, 110, 0.045);
+}
+
+.triagem-responder-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.triagem-responder-titulo strong {
+  font-size: 17px;
+}
+
+.triagem-ouvir {
+  border: 1px solid #cbdfee;
+  background: #f0f7fd;
+  color: #2c6fa7;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-modos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.triagem-modos button {
+  min-height: 60px;
+  border: 2px solid #d4e2ef;
+  border-radius: 14px;
+  background: #f8fbfe;
+  color: #3c6689;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-modos button.selecionado {
+  border-color: #3287c7;
+  background: #e8f3fc;
+  color: #2679b7;
+}
+
+.triagem-aviso {
+  background: #fff6e7;
+  color: #886025;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.triagem-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.triagem-opcoes button {
+  min-height: 48px;
+  border: 1px solid #cbdfee;
+  background: #f0f7fd;
+  color: #2c6fa7;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.triagem-opcoes button:hover {
+  background: #dceefa;
+}
+
+.triagem-formulario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.triagem-formulario input {
+  flex: 1;
+  min-width: 0;
+  height: 58px;
+  border: 1px solid #d1dce8;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 17px;
+  outline: none;
+}
+
+.triagem-formulario input:focus {
+  border-color: #3988c7;
+}
+
+.triagem-enviar {
+  height: 58px;
+  padding: 0 26px;
+  background: #3988c7;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-enviar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.triagem-voz-demo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #edf5fc;
+  color: #456e91;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.triagem-ponto-voz {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #3287c7;
+  flex-shrink: 0;
+}
+
+.triagem-teclado {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #e8f2fc;
+}
+
+.triagem-teclado-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.triagem-teclado-titulo button {
+  background: transparent;
+  border: none;
+  color: #3287c7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-teclas-linha {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.triagem-teclas-linha button {
+  flex: 1;
+  max-width: 75px;
+  min-width: 0;
+  height: 45px;
+  border: 1px solid #d0e0ee;
+  background: white;
+  border-radius: 8px;
+  color: #244a6e;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.triagem-teclas-linha .triagem-tecla-acao {
+  max-width: 160px;
+  background: #d6e8f7;
+}
+
+.triagem-teclas-linha .triagem-tecla-espaco {
+  max-width: 320px;
+  flex: 2;
+}
+
+.triagem-mostrar-teclado {
+  margin-top: 12px;
+  padding: 12px 18px;
+  border: 1px solid #cbdfee;
+  border-radius: 10px;
+  background: #f0f7fd;
+  color: #2c6fa7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  gap: 12px;
+}
+
+.triagem-voltar {
+  border: none;
+  background: transparent;
+  color: #3988c7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.triagem-acoes span {
+  font-size: 12px;
+  color: #91a0af;
+}
+
+.triagem-rodape {
+  text-align: center;
+  padding: 20px;
+  font-size: 12px;
+  color: #8b9cad;
+}
+
+@media (max-width: 760px) {
+  .triagem-cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .triagem-etapas {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .triagem-topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .triagem-chat {
+    height: 260px;
+    padding: 14px;
+  }
+
+  .triagem-balao {
+    max-width: 90%;
+    min-width: 0;
+  }
+
+  .triagem-responder {
+    padding: 15px;
+  }
+
+  .triagem-responder-titulo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .triagem-teclado {
+    padding: 8px;
+  }
+
+  .triagem-teclas-linha {
+    gap: 3px;
+  }
+
+  .triagem-teclas-linha button {
+    height: 42px;
+    font-size: 12px;
+  }
+
+  .triagem-acoes {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ---- Integração com a assistente (estado da conversa) ---- */
+
+.triagem-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.triagem-progresso small {
+  display: block;
+  margin-top: 6px;
+  font-weight: 500;
+  color: #7087a0;
+}
+
+.triagem-status-ponto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9aabba;
+  flex-shrink: 0;
+}
+
+.triagem-status-ponto.ouvindo {
+  background: #2d9b72;
+  animation: triagem-pulso 1.2s ease-in-out infinite;
+}
+
+.triagem-status-ponto.falando,
+.triagem-status-ponto.pensando,
+.triagem-status-ponto.transcrevendo {
+  background: #3988c7;
+}
+
+.triagem-chat-vazio {
+  margin: auto;
+  color: #7087a0;
+}
+
+.triagem-ponto-voz {
+  transition: transform 0.08s linear;
+}
+
+.triagem-ponto-voz.ativo {
+  background: #2d9b72;
+}
+
+.triagem-terminei {
+  margin-left: auto;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  background: white;
+  color: #2f7dc1;
+  font-weight: 700;
+}
+
+.triagem-voz-demo {
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+@keyframes triagem-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .triagem-status-ponto.ouvindo { animation: none; }
+}

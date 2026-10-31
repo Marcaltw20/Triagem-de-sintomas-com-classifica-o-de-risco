@@ -1,0 +1,354 @@
+
+import { useState } from "react";
+import "./index.css";
+
+const TECLAS = [
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["Z", "X", "C", "V", "B", "N", "M"],
+];
+
+function formatarCPF(valor) {
+  const n = valor.replace(/\D/g, "").slice(0, 11);
+  return n
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+}
+
+function formatarData(valor) {
+  const n = valor.replace(/\D/g, "").slice(0, 8);
+
+  if (n.length > 4) {
+    return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+  }
+  if (n.length > 2) {
+    return `${n.slice(0, 2)}/${n.slice(2)}`;
+  }
+  return n;
+}
+
+function cpfValido(cpf) {
+  const n = cpf.replace(/\D/g, "");
+  if (n.length !== 11 || /^(\d)\1{10}$/.test(n)) return false;
+
+  for (let tamanho = 9; tamanho <= 10; tamanho++) {
+    let soma = 0;
+    for (let i = 0; i < tamanho; i++) {
+      soma += Number(n[i]) * (tamanho + 1 - i);
+    }
+    const resto = (soma * 10) % 11;
+    const digito = resto === 10 ? 0 : resto;
+    if (digito !== Number(n[tamanho])) return false;
+  }
+  return true;
+}
+
+function dataValida(data) {
+  const partes = data.split("/");
+  if (partes.length !== 3) return false;
+
+  const [dia, mes, ano] = partes.map(Number);
+  if (ano < 1900 || ano > new Date().getFullYear()) return false;
+
+  const d = new Date(ano, mes - 1, dia);
+  return (
+    d.getFullYear() === ano &&
+    d.getMonth() === mes - 1 &&
+    d.getDate() === dia &&
+    d <= new Date()
+  );
+}
+
+export default function App() {
+  const [paciente, setPaciente] = useState({
+    nome: "",
+    nascimento: "",
+    cpf: "",
+  });
+
+  const [campoAtivo, setCampoAtivo] = useState("nome");
+  const [mensagem, setMensagem] = useState("");
+  const [identificado, setIdentificado] = useState(false);
+
+  function atualizarCampo(campo, valor) {
+    let novoValor = valor;
+
+    if (campo === "cpf") novoValor = formatarCPF(valor);
+    if (campo === "nascimento") novoValor = formatarData(valor);
+    if (campo === "nome") novoValor = valor.slice(0, 100);
+
+    setPaciente((anterior) => ({
+      ...anterior,
+      [campo]: novoValor,
+    }));
+    setMensagem("");
+  }
+
+  function digitar(tecla) {
+    if (identificado) return;
+
+    const atual = paciente[campoAtivo];
+
+    if (tecla === "APAGAR") {
+      atualizarCampo(campoAtivo, atual.slice(0, -1));
+      return;
+    }
+
+    if (tecla === "LIMPAR") {
+      atualizarCampo(campoAtivo, "");
+      return;
+    }
+
+    if (campoAtivo !== "nome" && !/^\d$/.test(tecla)) {
+      return;
+    }
+
+    if (campoAtivo === "nome" && !/^[A-Z ]$/.test(tecla)) {
+      return;
+    }
+
+    atualizarCampo(campoAtivo, atual + tecla);
+  }
+
+  function continuar() {
+    if (paciente.nome.trim().split(/\s+/).length < 2) {
+      setMensagem("Por favor, informe seu nome completo.");
+      return;
+    }
+
+    if (!dataValida(paciente.nascimento)) {
+      setMensagem("Informe uma data de nascimento válida.");
+      return;
+    }
+
+    if (!cpfValido(paciente.cpf)) {
+      setMensagem("Informe um CPF válido.");
+      return;
+    }
+
+    setIdentificado(true);
+    setMensagem("");
+  }
+
+  function reiniciar() {
+    setPaciente({ nome: "", nascimento: "", cpf: "" });
+    setCampoAtivo("nome");
+    setIdentificado(false);
+    setMensagem("");
+  }
+
+  return (
+    <div className="aplicacao">
+      <header className="cabecalho">
+        <div className="marca">
+          <div className="logo-fundo">
+            <img src="/logo.png" alt="Logo Triagem Inteligente" />
+          </div>
+          <div>
+            <h1>Triagem Inteligente</h1>
+            <p>Cuidado que começa com você</p>
+          </div>
+        </div>
+
+        <div className="etapas">
+          <div className="etapa ativa">
+            <span>1</span> Identificação
+          </div>
+          <div className="etapa">
+            <span>2</span> Conversa
+          </div>
+          <div className="etapa">
+            <span>3</span> Conclusão
+          </div>
+        </div>
+      </header>
+
+      <main className="principal">
+        {!identificado ? (
+          <>
+            <div className="introducao">
+              <div className="icone-boas-vindas">♡</div>
+              <h2>Olá, seja bem-vindo!</h2>
+              <p>
+                Para começarmos, precisamos de algumas informações.
+              </p>
+            </div>
+
+            <div className="cartao-identificacao">
+              <div className="titulo-cartao">
+                <h3>Identificação do paciente</h3>
+                <p>Preencha os dados abaixo para continuar.</p>
+              </div>
+
+              <div className="formulario">
+                <label htmlFor="nome">Nome completo</label>
+                <input
+                  id="nome"
+                  type="text"
+                  value={paciente.nome}
+                  onFocus={() => setCampoAtivo("nome")}
+                  onChange={(e) =>
+                    atualizarCampo("nome", e.target.value)
+                  }
+                  placeholder="Digite seu nome completo"
+                  autoComplete="off"
+                />
+
+                <div className="linha-campos">
+                  <div className="campo">
+                    <label htmlFor="nascimento">
+                      Data de nascimento
+                    </label>
+                    <input
+                      id="nascimento"
+                      type="text"
+                      inputMode="none"
+                      value={paciente.nascimento}
+                      onFocus={() => setCampoAtivo("nascimento")}
+                      onChange={(e) =>
+                        atualizarCampo(
+                          "nascimento",
+                          e.target.value
+                        )
+                      }
+                      placeholder="DD/MM/AAAA"
+                      maxLength={10}
+                    />
+                  </div>
+
+                  <div className="campo">
+                    <label htmlFor="cpf">CPF</label>
+                    <input
+                      id="cpf"
+                      type="text"
+                      inputMode="none"
+                      value={paciente.cpf}
+                      onFocus={() => setCampoAtivo("cpf")}
+                      onChange={(e) =>
+                        atualizarCampo("cpf", e.target.value)
+                      }
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {mensagem && (
+                <p className="mensagem-erro" role="alert">
+                  {mensagem}
+                </p>
+              )}
+
+              <button
+                type="button"
+                className="botao-continuar"
+                onClick={continuar}
+              >
+                Continuar atendimento →
+              </button>
+            </div>
+
+            <section className="teclado-virtual">
+              <div className="teclado-topo">
+                <div>
+                  <strong>Teclado virtual</strong>
+                  <p>Toque nas teclas para preencher os dados.</p>
+                </div>
+                <span className="campo-selecionado">
+                  {campoAtivo === "nome"
+                    ? "Nome completo"
+                    : campoAtivo === "nascimento"
+                    ? "Data de nascimento"
+                    : "CPF"}
+                </span>
+              </div>
+
+              <div className="teclas">
+                {TECLAS.map((linha, indice) => (
+                  <div className="linha-teclado" key={indice}>
+                    {linha.map((tecla) => (
+                      <button
+                        type="button"
+                        key={tecla}
+                        disabled={
+                          campoAtivo !== "nome" &&
+                          !/^\d$/.test(tecla)
+                        }
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => digitar(tecla)}
+                      >
+                        {tecla}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+
+                <div className="linha-teclado">
+                  <button
+                    type="button"
+                    className="tecla-acao"
+                    onClick={() => digitar("LIMPAR")}
+                  >
+                    Limpar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="tecla-espaco"
+                    disabled={campoAtivo !== "nome"}
+                    onClick={() => digitar(" ")}
+                  >
+                    Espaço
+                  </button>
+
+                  <button
+                    type="button"
+                    className="tecla-acao"
+                    onClick={() => digitar("APAGAR")}
+                  >
+                    ⌫ Apagar
+                  </button>
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <section className="cartao-sucesso">
+            <div className="sucesso-icone">✓</div>
+            <h2>Identificação concluída!</h2>
+            <p>
+              Os dados foram preenchidos e estão prontos
+              para a próxima etapa.
+            </p>
+            <div className="dados-resumo">
+              <p><strong>Nome:</strong> {paciente.nome}</p>
+              <p>
+                <strong>Nascimento:</strong>{" "}
+                {paciente.nascimento}
+              </p>
+              <p><strong>CPF:</strong> {paciente.cpf}</p>
+            </div>
+            <p className="aviso-integracao">
+              A tela de conversa com IA será integrada
+              na próxima etapa.
+            </p>
+            <button
+              className="botao-continuar"
+              onClick={reiniciar}
+            >
+              Iniciar nova identificação
+            </button>
+          </section>
+        )}
+      </main>
+
+      <footer className="rodape">
+        Protótipo acadêmico • Não substitui avaliação
+        de um profissional de saúde.
+      </footer>
+    </div>
+  );
+}

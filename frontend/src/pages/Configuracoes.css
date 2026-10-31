@@ -1,0 +1,481 @@
+/* Tela de configuração (mesma linguagem visual de Triagem.css e Pressao.css) */
+
+.config-voltar {
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: #eaf3fc;
+  color: #2f7dc1;
+  font-weight: 700;
+}
+
+.config-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: white;
+  padding: 24px 26px;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(32, 72, 110, 0.045);
+  border: 2px solid transparent;
+}
+
+.config-teste-ligado {
+  border-color: #f0b35a;
+  background: #fffaf2;
+}
+
+.config-titulo h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.config-titulo p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #7087a0;
+}
+
+.config-chave {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f2f7fc;
+  cursor: pointer;
+}
+
+.config-chave span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.config-chave small,
+.config-medidor small,
+.config-relogio small,
+.config-encontrados small {
+  font-size: 13px;
+  color: #7087a0;
+}
+
+/* interruptor */
+.config-chave input {
+  appearance: none;
+  flex: none;
+  width: 52px;
+  height: 30px;
+  margin: 0;
+  border-radius: 15px;
+  background: #c9d7e4;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.config-chave input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s;
+}
+
+.config-chave input:checked {
+  background: #3287c7;
+}
+
+.config-chave input:checked::after {
+  transform: translateX(22px);
+}
+
+.config-chave input:focus-visible {
+  outline: 2px solid #3988c7;
+  outline-offset: 2px;
+}
+
+.config-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-medidor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid #d5e3f0;
+  border-radius: 12px;
+}
+
+.config-medidor.ativo {
+  border-color: #3287c7;
+  background: #f5f9fd;
+}
+
+.config-medidor-info {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.config-medidor-info input {
+  width: 20px;
+  height: 20px;
+  accent-color: #3287c7;
+}
+
+.config-medidor-info span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.config-selo {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.config-selo.ok {
+  background: #e9f6f0;
+  color: #2f7d5f;
+}
+
+.config-selo.pendente {
+  background: #fdf3e7;
+  color: #a5671b;
+}
+
+.config-medidor-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.config-medidor-acoes .pressao-botao {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.config-remover {
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #c0453a;
+  font-weight: 600;
+}
+
+.config-remover:hover {
+  background: #fcecea;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f2f7fc;
+}
+
+.config-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.config-campos label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #7087a0;
+}
+
+.config-campos input,
+.config-campos select {
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #d5e3f0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 16px;
+  color: #233b57;
+  background: white;
+}
+
+.config-campos input:focus,
+.config-campos select:focus {
+  outline: 2px solid #3988c7;
+  outline-offset: 1px;
+}
+
+.config-botoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.config-botoes .pressao-botao {
+  flex: 1 1 200px;
+}
+
+.pressao-botao:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.config-dica,
+.config-vazio {
+  margin: 0;
+  font-size: 13px;
+  color: #7087a0;
+  line-height: 1.45;
+}
+
+.config-encontrados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.config-encontrados button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid #d5e3f0;
+  border-radius: 10px;
+  background: white;
+  color: #233b57;
+  text-align: left;
+}
+
+.config-encontrados button.selecionado {
+  border-color: #3287c7;
+  outline: 1px solid #3287c7;
+}
+
+.config-relogio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.config-relogio > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f2f7fc;
+}
+
+.config-relogio span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #3988c7;
+}
+
+.config-relogio code {
+  font-size: 16px;
+  color: #233b57;
+  word-break: break-all;
+}
+
+.config-relogio strong {
+  font-size: 32px;
+}
+
+.config-aviso-ok {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #e9f6f0;
+  color: #2f7d5f;
+  font-weight: 600;
+}
+
+/* atalho da engrenagem na tela de identificação */
+.botao-config {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #9aabba;
+  font-size: 22px;
+}
+
+.botao-config:hover {
+  background: #eaf3fc;
+  color: #2f7dc1;
+}
+
+.selo-teste {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fdf3e7;
+  color: #a5671b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* banco de dados */
+.config-relogio strong.config-banco-ok,
+.config-relogio strong.config-banco-erro {
+  font-size: 20px;
+}
+
+.config-banco-ok {
+  color: #2f7d5f;
+}
+
+.config-banco-erro {
+  color: #c0453a;
+}
+
+.config-relogio strong.config-texto {
+  font-size: inherit;
+}
+
+.config-relogio .pressao-botao {
+  min-height: 40px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.config-tabela-rolagem {
+  overflow-x: auto;
+}
+
+.config-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.config-tabela th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7087a0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-tabela th,
+.config-tabela td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e3edf6;
+  white-space: nowrap;
+}
+
+.config-cor {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .config-cartao {
+    padding: 18px;
+  }
+}
+
+/* login da configuração */
+.config-login {
+  width: min(100%, 460px);
+  margin: 24px auto 0;
+}
+
+.config-campos-login {
+  grid-template-columns: 1fr;
+}
+
+.config-usuario {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 14px;
+  color: #426485;
+}
+
+/* seção Usuários */
+.config-selo.bloqueado {
+  background: #fcecea;
+  color: #c0453a;
+}
+
+.config-voce,
+.config-tentativas {
+  font-size: 12px;
+  color: #7087a0;
+}
+
+.config-acao-usuario {
+  text-align: right;
+}
+
+.config-acao-usuario button {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.config-acao-usuario button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: transparent;
+}
+
+/* seção Câmera */
+.config-select {
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #d5e3f0;
+  border-radius: 10px;
+  font: inherit;
+  color: #233b57;
+  background: white;
+}
+
+.config-botoes-simular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.config-botoes-simular button {
+  flex: 1 1 110px;
+  min-height: 38px;
+  font-size: 13px;
+}

@@ -1,0 +1,46 @@
+{
+  // Tarefas do VS Code: Terminal > Executar Tarefa... (ou Ctrl+Shift+B para "Iniciar tudo")
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Iniciar tudo",
+      "dependsOn": ["Backend", "Front-end"],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Backend",
+      "type": "shell",
+      "command": "python -m uvicorn server:app --host 0.0.0.0 --port 8000 --reload",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "group": "triagem" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Front-end",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "group": "triagem" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Instalar dependências",
+      "type": "shell",
+      "command": "pip install -r backend/requirements.txt; cd frontend; npm install",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Testar árvore de decisão",
+      "type": "shell",
+      "command": "python testes_automaticos.py",
+      "options": { "cwd": "${workspaceFolder}/arvore_decisao" },
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

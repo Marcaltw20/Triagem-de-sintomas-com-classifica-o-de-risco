@@ -1,0 +1,44 @@
+# --- Segredos e configuração local (nunca publicar) ---
+.env
+backend/.env
+backend/ajustes.json
+
+# --- Dados pessoais e de saúde gerados pelo uso ---
+backend/dados/
+backend/cache_voz/
+pressao_arterial/leituras_omron.csv
+pressao_arterial/omron_last_sync.json
+pressao_arterial/omron_pairing_key.json
+reidentificacao/eventos.csv
+*.csv
+
+# --- Modelos de reconhecimento facial (baixados sozinhos pelo reidentificacao.py) ---
+reidentificacao/modelos/*.onnx
+
+# --- SDK da Samsung (tem termos de uso próprios; baixe no portal oficial, veja relogio_spo2/README.md) ---
+relogio_spo2/watch-spo2/app/libs/*.aar
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Node / front-end ---
+node_modules/
+dist/
+
+# --- Android / Gradle (app do relógio) ---
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+*.apk
+*.keystore
+*.jks
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+*.log

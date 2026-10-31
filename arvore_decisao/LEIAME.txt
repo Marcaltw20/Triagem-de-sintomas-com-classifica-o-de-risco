@@ -1,0 +1,46 @@
+ÁRVORE DE DECISÃO – CLASSIFICAÇÃO DE RISCO (TCC 2026)
+
+Requisito: Python 3.9 ou superior (não precisa instalar nenhuma biblioteca).
+
+ARQUIVOS
+  arvore_decisao.py      -> a árvore de decisão (o "motor"). É este arquivo que a LLM vai usar.
+  teste_manual.py        -> você digita os valores e os sintomas e vê a classificação.
+  testes_automaticos.py  -> roda os 80 casos de teste de uma vez (P01-P27 = casos da monografia;
+                            P28-P80 = árvore ampliada).
+
+COMO USAR (no terminal, dentro desta pasta)
+  python teste_manual.py
+  python testes_automaticos.py
+
+USAR DE OUTRO CÓDIGO (ex.: código main ou da LLM)
+  from arvore_decisao import classificar_risco
+  r = classificar_risco(pas=185, pad=100, fc=88, spo2=97, temp=36.8, sintomas=["falta_de_ar"])
+  print(r["cor"], r["motivo"])
+
+INTEGRAÇÃO COM A LLM (futuro)
+  - TOOL_SCHEMA: descrição da ferramenta para registrar na API da LLM (function calling).
+  - executar_ferramenta(argumentos): recebe os argumentos que a LLM mandar e devolve o resultado em JSON.
+  - A LLM só converte a fala do usuário em sintomas; quem decide a cor é a árvore.
+
+COMO A ÁRVORE DECIDE
+  1. Cada sintoma do CATALOGO (em arvore_decisao.py) tem uma cor-base, como os discriminadores
+     dos fluxogramas de Manchester. São 98 chaves em 12 categorias: fatores de risco, neurológico,
+     coração e circulação, respiratório, digestivo, urinário e reprodutivo, alergia e pele,
+     trauma e acidentes, olhos/ouvidos/nariz/boca, músculos e articulações, saúde mental e geral.
+  2. Os sinais vitais entram pelos limites críticos, pela crise hipertensiva e pelo NEWS2 adaptado.
+  3. Regras de combinação agravam a cor: sintoma + sintoma (dor no peito + suor frio),
+     sintoma + sinal vital (falta de ar + SpO2 93%) e sintoma + fator de risco (febre + imunidade baixa).
+     Ficam nas listas COMBINACOES_ALARME, COMBINACOES_MUITO_URGENTES e COMBINACOES_MODERADAS.
+  4. Vale a regra mais grave; no empate, a que vem primeiro na árvore (N1 -> N6).
+     As demais regras que dispararam voltam em r["outros_achados"].
+  A ordem completa está no cabeçalho de arvore_decisao.py.
+
+PARA ACRESCENTAR UM SINTOMA OU UMA REGRA
+  - Sintoma novo: uma linha no CATALOGO (chave, rótulo, descrição, cor-base). O prompt da LLM,
+    o teste manual e a tela passam a conhecê-lo sozinhos.
+  - Combinação nova: uma linha em uma das listas COMBINACOES_*.
+  - Acrescente um caso em testes_automaticos.py.
+
+CHAVES DE SINTOMAS ACEITAS
+  Veja o CATALOGO em arvore_decisao.py, ou rode:
+    python -c "import arvore_decisao as a; print(*a.SINTOMAS, sep='\n')"
