@@ -135,6 +135,7 @@ class ClassificarIn(BaseModel):
     pas: float
     pad: float
     fc: float
+    pulso_irregular: bool = False  # o medidor de pressão avisou batimento irregular (pulso anormal)
     spo2: float | None = None  # sem valor = SPO2_MANUAL do .env
     temp: float | None = None  # sem valor = TEMP_MANUAL do .env
     explicar: bool = True      # False no modo tempo real (quem explica é a sessão de voz)

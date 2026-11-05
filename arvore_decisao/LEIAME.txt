@@ -27,7 +27,10 @@ COMO A ÁRVORE DECIDE
      dos fluxogramas de Manchester. São 98 chaves em 12 categorias: fatores de risco, neurológico,
      coração e circulação, respiratório, digestivo, urinário e reprodutivo, alergia e pele,
      trauma e acidentes, olhos/ouvidos/nariz/boca, músculos e articulações, saúde mental e geral.
-  2. Os sinais vitais entram pelos limites críticos, pela crise hipertensiva e pelo NEWS2 adaptado.
+  2. Os sinais vitais seguem os discriminadores do Manchester (N2): choque (PAS < 90 com pulso
+     anormal), SatO2 muito baixa (< 90%), pulso anormal (FC < 60 ou > 100, ou batimento irregular
+     do Omron) e temperatura (>= 41 laranja; 38,5-40,9 amarelo; 37,5-38,4 verde). Além do
+     Manchester ficam a crise hipertensiva (adaptação) e o NEWS2 adaptado (complemento).
   3. Regras de combinação agravam a cor: sintoma + sintoma (dor no peito + suor frio),
      sintoma + sinal vital (falta de ar + SpO2 93%) e sintoma + fator de risco (febre + imunidade baixa).
      Ficam nas listas COMBINACOES_ALARME, COMBINACOES_MUITO_URGENTES e COMBINACOES_MODERADAS.

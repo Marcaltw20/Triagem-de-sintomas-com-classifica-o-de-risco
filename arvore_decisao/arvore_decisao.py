@@ -10,40 +10,55 @@ A LLM NÃO decide a cor. Ela só transforma o que o usuário disse em chaves de 
 e repassa os sinais vitais vindos dos sensores. Quem decide é a árvore.
 
 Entradas
-  - 5 sinais vitais (PAS, PAD, FC, SpO2, temperatura);
+  - 5 sinais vitais (PAS, PAD, FC, SpO2, temperatura) e o aviso de batimento irregular
+    do medidor de pressão (Omron);
   - sintomas e fatores de risco relatados (chaves do CATALOGO, organizadas por sistema
     do corpo). Cada sintoma tem uma cor-base (discriminador, como nos fluxogramas de
     Manchester) e pode ser agravado por combinações com outros sintomas, com os sinais
     vitais ou com fatores de risco (gestante, idoso, diabético etc.).
 
-Ordem de avaliação (do mais grave para o mais leve; vale a primeira condição verdadeira):
+Ordem de avaliação (do mais grave para o mais leve; vale a cor mais grave encontrada):
   VERMELHO
     N1  Sinal de alarme relatado (inconsciência, déficit neurológico, convulsão, ...)
     N1  Combinação de alarme (anafilaxia; meningite com manchas roxas)
-    N2  SpO2 <= 91% ou PAS <= 90 mmHg
-    N3  PAS >= 180 ou PAD >= 120 + sintoma de lesão de órgão-alvo (emergência hipertensiva)
-        Gestante com PAS >= 160 ou PAD >= 110
+    N2  Choque: PAS < 90 mmHg com pulso anormal                          [Manchester]
+    N3  PAS >= 180 ou PAD >= 120 + sintoma de lesão de órgão-alvo         [adaptação*]
+        Gestante com PAS >= 160 ou PAD >= 110 (pré-eclâmpsia grave)
   LARANJA
-    N2  Temperatura >= 41 °C
-    N3  PAS >= 180 ou PAD >= 120 sem sintomas (urgência hipertensiva)
-    N4  NEWS2 adaptado >= 7
-    N4  NEWS2 5-6 (ou parâmetro isolado = 3) + sintoma moderado
+    N2  SatO2 muito baixa: SpO2 < 90% em ar ambiente                      [Manchester]
+    N2  Pulso anormal: FC < 60 ou > 100 bpm, ou ritmo irregular (Omron)   [Manchester]
+    N2  Muito quente: temperatura >= 41 °C                                [Manchester]
+    N2  PAS < 90 mmHg sem pulso anormal
+    N3  PAS >= 180 ou PAD >= 120 sem sintomas (urgência hipertensiva)     [adaptação*]
+    N4  NEWS2 adaptado >= 7                                               [complemento**]
+    N4  NEWS2 5-6 (ou parâmetro isolado = 3) + sintoma moderado           [complemento**]
     N5  Sintoma muito urgente (dor intensa, falta de ar grave, vômito com sangue, ...)
     N5  Combinação muito urgente (dor torácica + sudorese, febre + rigidez de nuca, ...)
   AMARELO
-    N4  NEWS2 adaptado 5-6 ou parâmetro isolado = 3
+    N2  Quente: temperatura de 38,5 a 40,9 °C                             [Manchester]
+    N4  NEWS2 adaptado 5-6 ou parâmetro isolado = 3                       [complemento**]
     N5  Sintoma moderado (dor torácica, falta de ar, cefaleia intensa, palpitação, ...)
     N5  Combinação moderada (vômito + desidratação, febre + dor abdominal, ...)
   VERDE
+    N2  Febrícula: temperatura de 37,5 a 38,4 °C                          [Manchester]
     N6  NEWS2 >= 1 ou sintoma leve (febre, tosse, dor moderada, ...)
   AZUL
     N6  Queixa mínima (coriza, insônia, ...) ou nenhum sintoma, com sinais vitais normais
+
+N2 segue os discriminadores de sinais vitais do Sistema Manchester (SatO2 muito baixa,
+pulso anormal, choque e as faixas de temperatura muito quente / quente / febrícula), com
+tudo o que os medidores do totem informam. O Manchester descreve o choque pelos sinais
+clínicos; aqui ele é PAS < 90 junto com pulso anormal.
+ * Adaptação local: no Manchester a pressão alta só é avaliada na gestante; como o totem
+   mede a pressão de todos, a crise hipertensiva (Diretrizes Brasileiras) foi mantida.
+** Complemento: o NEWS2 não faz parte do Manchester; continua como regra a mais, que só
+   pode subir a cor.
 
 Todas as regras que dispararam (não só a que definiu a cor) voltam em `outros_achados`.
 
 Dados do paciente (vêm da identificação no totem, não da conversa)
   - idade: com 65 anos ou mais, o fator de risco "idoso" entra sozinho na árvore;
-    abaixo de 16 anos, o resultado avisa que o NEWS2 foi feito para adultos.
+    abaixo de 16 anos, o resultado avisa que os limites de pulso e o NEWS2 são de adultos.
   - sexo: no masculino, chaves só possíveis no feminino (gestante, sangramento vaginal...)
     são ignoradas; no feminino, a dor testicular é ignorada.
   - deficiências: não mudam a cor (não deixam o caso mais grave), mas dão direito a
@@ -51,8 +66,11 @@ Dados do paciente (vêm da identificação no totem, não da conversa)
     e gestação. Deficiência que impede usar o totem sozinho é tratada antes, no próprio
     totem, que encaminha a pessoa direto para a enfermagem.
 
-Referências: Sistema Manchester de Classificação de Risco; NEWS2 (Royal College of
+Referências: Sistema Manchester de Classificação de Risco (discriminadores de sinais
+vitais: UNA-SUS/UFSC; Rev. Gaúcha Enferm., "Associações entre discriminadores do Sistema
+de Triagem de Manchester e diagnósticos de enfermagem"); NEWS2 (Royal College of
 Physicians, 2017); Diretrizes Brasileiras de Hipertensão Arterial (Barroso et al., 2021).
+Os limites do Manchester devem ser conferidos com o manual oficial vigente na instituição.
 """
 
 from __future__ import annotations
@@ -254,6 +272,15 @@ IDADE_PRIORIDADE_LEGAL = 60    # Estatuto da Pessoa Idosa / Lei 10.048/2000
 IDADE_ADULTO = 16              # o NEWS2 foi validado em adultos
 IDADE_MAXIMA = 130
 
+# Discriminadores de sinais vitais do Manchester (adultos)
+SPO2_MUITO_BAIXA = 90    # SatO2 muito baixa: < 90% em ar ambiente -> laranja
+FC_BRADICARDIA = 60      # pulso anormal: FC < 60 ...
+FC_TAQUICARDIA = 100     # ... ou FC > 100 (versão brasileira; a portuguesa usa 120) -> laranja
+PAS_CHOQUE = 90          # PAS < 90 com pulso anormal = sinais de choque -> vermelho
+TEMP_MUITO_QUENTE = 41.0 # muito quente: >= 41 °C -> laranja
+TEMP_QUENTE = 38.5       # quente: 38,5 a 40,9 °C -> amarelo
+TEMP_FEBRICULA = 37.5    # febrícula: 37,5 a 38,4 °C -> verde
+
 
 class DadosInvalidos(ValueError):
     """Sinal vital fora da faixa aceita ou sintoma desconhecido."""
@@ -432,7 +459,7 @@ def aplicar_perfil(s: set[str], idade: int | None, sexo: str | None,
     if idade is not None and idade >= IDADE_IDOSO and "idoso" not in s:
         s.add("idoso")
     if idade is not None and idade < IDADE_ADULTO:
-        observacoes.append(f"Paciente com {idade} anos: o NEWS2 foi criado para adultos, "
+        observacoes.append(f"Paciente com {idade} anos: os limites de pulso e o NEWS2 são de adultos, "
                            "então a classificação deve ser confirmada pela enfermagem.")
 
     prioridade = [DEFICIENCIAS[d] for d in deficiencias]
@@ -449,7 +476,8 @@ def aplicar_perfil(s: set[str], idade: int | None, sexo: str | None,
 
 def classificar_risco(pas: float, pad: float, fc: float, spo2: float, temp: float,
                       sintomas: list[str] | None = None, idade: int | None = None,
-                      sexo: str | None = None, deficiencias: list[str] | None = None) -> dict[str, Any]:
+                      sexo: str | None = None, deficiencias: list[str] | None = None,
+                      pulso_irregular: bool = False) -> dict[str, Any]:
     """
     Classifica o risco do usuário.
 
@@ -464,6 +492,7 @@ def classificar_risco(pas: float, pad: float, fc: float, spo2: float, temp: floa
     idade        : idade em anos, da identificação (opcional)
     sexo         : "F" ou "M", da identificação (opcional)
     deficiencias : chaves de DEFICIENCIAS, da identificação (opcional)
+    pulso_irregular : o medidor de pressão avisou batimento irregular (opcional)
 
     Retorno
     -------
@@ -475,6 +504,8 @@ def classificar_risco(pas: float, pad: float, fc: float, spo2: float, temp: floa
     """
     v, s = validar({"pas": pas, "pad": pad, "fc": fc, "spo2": spo2, "temp": temp},
                    list(sintomas or []))
+    if not isinstance(pulso_irregular, bool):
+        raise DadosInvalidos(f"pulso_irregular deve ser verdadeiro ou falso: {pulso_irregular!r}.")
     idade, sexo, deficiencias = validar_perfil(idade, sexo, deficiencias)
     observacoes, motivos_prioridade = aplicar_perfil(s, idade, sexo, deficiencias)
     pts = pontos_news2(v["fc"], v["pas"], v["spo2"], v["temp"])
@@ -497,13 +528,26 @@ def classificar_risco(pas: float, pad: float, fc: float, spo2: float, temp: floa
         if condicao(s, v):
             achado("VERMELHO", "N1", motivo)
 
-    # N2 — sinal vital crítico
-    if v["spo2"] <= 91:
-        achado("VERMELHO", "N2", f"Saturação de oxigênio crítica (SpO2 = {v['spo2']:g}%)")
-    if v["pas"] <= 90:
-        achado("VERMELHO", "N2", f"Pressão arterial muito baixa (PAS = {v['pas']:g} mmHg)")
-    if v["temp"] >= 41:
-        achado("LARANJA", "N2", f"Temperatura muito alta ({v['temp']:g} °C)")
+    # N2 — discriminadores de sinais vitais do Manchester (tudo o que os medidores informam)
+    alteracoes_pulso = ([f"bradicardia (FC = {v['fc']:g})"] if v["fc"] < FC_BRADICARDIA else []) \
+        + ([f"taquicardia (FC = {v['fc']:g})"] if v["fc"] > FC_TAQUICARDIA else []) \
+        + (["ritmo irregular (medidor de pressão)"] if pulso_irregular else [])
+    pulso = ", ".join(alteracoes_pulso)
+    if v["pas"] < PAS_CHOQUE:
+        if alteracoes_pulso:
+            achado("VERMELHO", "N2", f"Sinais de choque: pressão baixa (PAS = {v['pas']:g} mmHg) com pulso anormal: {pulso}")
+        else:
+            achado("LARANJA", "N2", f"Pressão arterial baixa (PAS = {v['pas']:g} mmHg)")
+    if v["spo2"] < SPO2_MUITO_BAIXA:
+        achado("LARANJA", "N2", f"SatO2 muito baixa (SpO2 = {v['spo2']:g}% em ar ambiente)")
+    if alteracoes_pulso:
+        achado("LARANJA", "N2", f"Pulso anormal: {pulso}")
+    if v["temp"] >= TEMP_MUITO_QUENTE:
+        achado("LARANJA", "N2", f"Muito quente: temperatura de {v['temp']:g} °C")
+    elif v["temp"] >= TEMP_QUENTE:
+        achado("AMARELO", "N2", f"Quente: temperatura de {v['temp']:g} °C")
+    elif v["temp"] >= TEMP_FEBRICULA:
+        achado("VERDE", "N2", f"Febrícula: temperatura de {v['temp']:g} °C")
 
     # N3 — crise hipertensiva
     pa = f"PA = {v['pas']:g}/{v['pad']:g} mmHg"
@@ -566,7 +610,7 @@ def classificar_risco(pas: float, pad: float, fc: float, spo2: float, temp: floa
         "motivos_prioridade": motivos_prioridade,
         "observacoes": observacoes,
         "news2": {"total": total, "pontos": pts},
-        "dados": {"vitais": v, "sintomas": sorted(s),
+        "dados": {"vitais": {**v, "pulso_irregular": pulso_irregular}, "sintomas": sorted(s),
                   "perfil": {"idade": idade, "sexo": sexo, "deficiencias": deficiencias}},
     }
 
@@ -591,6 +635,8 @@ TOOL_SCHEMA = {
             "fc": {"type": "number", "description": "Frequência cardíaca (bpm)"},
             "spo2": {"type": "number", "description": "Saturação de oxigênio (%)"},
             "temp": {"type": "number", "description": "Temperatura corporal (°C)"},
+            "pulso_irregular": {"type": "boolean",
+                                "description": "O medidor de pressão avisou batimento irregular"},
             "sintomas": {
                 "type": "array",
                 "items": {"type": "string", "enum": list(SINTOMAS)},

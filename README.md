@@ -13,7 +13,7 @@ pressão, trabalhar sem medidor ou sem relógio e ligar o **modo de teste**, que
 |---|---|---|
 | `frontend/` | Tela do totem (React + Vite) | `Tcc_front` (área de trabalho), ligado ao backend |
 | `backend/` | Servidor FastAPI: LLM, medidor de pressão e chamada à árvore | `codigos/triagem_llm/backend` |
-| `arvore_decisao/` | Árvore de decisão (classificação de risco) e seus 90 testes | `codigos/arvore_decisao` |
+| `arvore_decisao/` | Árvore de decisão (classificação de risco) e seus 108 testes | `codigos/arvore_decisao` |
 | `pressao_arterial/` | Comunicação Bluetooth com o Omron | `codigos/Pressão arterial` |
 | `relogio_spo2/` | App do Galaxy Watch 6 que mede SpO2 e envia ao backend | `projeto-spo2` (área de trabalho) |
 | `banco/` | Esquema do banco MySQL (`schema.sql`), feito a partir do diagrama de classes | — |
@@ -227,9 +227,31 @@ vale o que está em `backend/ajustes.json` (apague esse arquivo para voltar ao `
 Se o modo tempo real não conectar (microfone negado ou falha na OpenAI), a conversa continua
 sozinha no modo clássico, por escrito.
 
+## Sinais vitais na árvore: Protocolo de Manchester
+
+Os sinais vitais seguem os discriminadores do Sistema Manchester, usando tudo o que os medidores
+informam (pressão, batimentos e aviso de batimento irregular do Omron; saturação do relógio;
+temperatura):
+
+| Discriminador | Regra | Cor |
+|---|---|---|
+| Choque | PAS < 90 mmHg **com** pulso anormal | Vermelho |
+| SatO2 muito baixa | SpO2 < 90% em ar ambiente | Laranja |
+| Pulso anormal | FC < 60 ou > 100 bpm, ou batimento irregular avisado pelo Omron | Laranja |
+| Pressão baixa | PAS < 90 mmHg sem pulso anormal | Laranja |
+| Muito quente / Quente / Febrícula | ≥ 41 °C / 38,5–40,9 °C / 37,5–38,4 °C | Laranja / Amarelo / Verde |
+
+Duas regras ficam **além** do Manchester, marcadas no código: a crise hipertensiva (≥ 180/120, das
+Diretrizes Brasileiras de Hipertensão), porque o totem mede a pressão de todos, e o NEWS2 adaptado,
+como complemento que só pode subir a cor. Os limites vieram de material do UNA-SUS/UFSC e de
+estudos brasileiros sobre o Manchester; confira com o manual oficial vigente na instituição.
+Em menores de 16 anos os limites de pulso são de adulto (lado seguro), e o resultado avisa a
+enfermagem para confirmar.
+
 ## Testes
 
-Árvore de decisão (90 casos: 80 de sintomas e sinais vitais, 10 de idade, sexo e deficiência):
+Árvore de decisão (108 casos: 80 de sintomas e sinais vitais, 18 dos limites do Manchester e 10 de
+idade, sexo e deficiência):
 
     cd arvore_decisao
     python testes_automaticos.py

@@ -68,8 +68,9 @@ export default function Pressao({
   }
 
   function enviar() {
-    const { pas, pad, fc } = pressaoPronta;
-    aoMedir({ pas, pad, fc }, vitaisRef.current, fontes());
+    // pulso_irregular: o Omron avisou batimento irregular ("pulso anormal" no Manchester)
+    const { pas, pad, fc, pulso_irregular } = pressaoPronta;
+    aoMedir({ pas, pad, fc, pulso_irregular }, vitaisRef.current, fontes());
   }
 
   // Classifica quando a pressão estiver pronta e a saturação não estiver mais esperando o relógio
@@ -138,7 +139,14 @@ export default function Pressao({
       setLeitura(l);
       // no modo tempo real a leitura é falada junto com o resultado (uma resposta só)
       if (!tempoReal) await dizer(`Recebi sua pressão: ${l.pas} por ${l.pad}, com ${l.fc} batimentos por minuto.`);
-      setPressaoPronta({ pas: l.pas, pad: l.pad, fc: l.fc, origem: "SENSOR", experimental: !!l.simulado });
+      setPressaoPronta({
+        pas: l.pas,
+        pad: l.pad,
+        fc: l.fc,
+        pulso_irregular: !!l.batimento_irregular,
+        origem: "SENSOR",
+        experimental: !!l.simulado,
+      });
     } catch (e) {
       setMedindo(false);
       setErroLeitura(e.message);
@@ -152,7 +160,7 @@ export default function Pressao({
     if (!v.pas || !v.pad || !v.fc) return;
     setErroLeitura("");
     setLeitura({ ...v, manual: true });
-    setPressaoPronta({ ...v, origem: "MANUAL", experimental: false });
+    setPressaoPronta({ ...v, pulso_irregular: false, origem: "MANUAL", experimental: false });
   }
 
   const minutos = Math.floor(restante / 60);

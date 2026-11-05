@@ -414,6 +414,7 @@ Requisição:
 |---|---|
 | `sintomas` | Chaves do catálogo da árvore |
 | `pas`, `pad`, `fc` | Valores da medição de pressão |
+| `pulso_irregular` | Opcional (`false`); `true` quando o Omron avisou batimento irregular: é "pulso anormal" no Manchester (laranja; com PAS < 90, vermelho) |
 | `spo2`, `temp` | Opcionais; sem valor, o backend usa os do `.env` |
 | `explicar` | `true` no modo clássico (a LLM escreve a explicação); `false` no tempo real |
 | `perfil` | Opcional; idade, sexo e deficiências (veja "Perfil do paciente") |
@@ -464,7 +465,7 @@ Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem grav
 }
 ```
 
-`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou o NEWS2 em menores de 16 anos. `texto` é a explicação
+`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou os limites de pulso e o NEWS2 serem de adultos em menores de 16 anos. `texto` é a explicação
 falada; vem `null` quando `explicar` é `false`. Se a OpenAI falhar na explicação, o backend
 monta uma frase padrão a partir do resultado, sem devolver erro.
 
