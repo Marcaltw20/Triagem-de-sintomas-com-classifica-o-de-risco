@@ -34,6 +34,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -49,6 +51,10 @@ class TrackingManager @Inject constructor(@ApplicationContext private val contex
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var spO2Tracker: HealthTracker? = null
     private var lastUploadedTimestamp: Long? = null
+    private var measurementJob: Job? = null
+    private var temperature = SkinTemperatureReading(status = "nao_solicitada")
+    private val _temperatureMessage = MutableStateFlow("")
+    val temperatureMessage = _temperatureMessage.asStateFlow()
     private val _spO2State =
         MutableStateFlow<DataState<Int?>>(DataState.Initial)
     val spO2State = _spO2State.asStateFlow()
@@ -105,14 +111,19 @@ class TrackingManager @Inject constructor(@ApplicationContext private val contex
                     lastUploadedTimestamp != dataPoint.timestamp
                 ) {
                     lastUploadedTimestamp = dataPoint.timestamp
+                    val currentTemperature = temperature
                     stopSpO2Measurement(isManuallyTriggered = false)
                     scope.launch {
-                        SpO2Uploader.upload(spO2, dataPoint.timestamp)
+                        SpO2Uploader.upload(spO2, dataPoint.timestamp, currentTemperature)
                             .onSuccess {
                                 Log.i(APP_TAG, "SpO2 $spO2% sent to Python")
+                                _temperatureMessage.value = currentTemperature.value?.let {
+                                    "Temperatura: %.1f °C • enviado".format(it)
+                                } ?: "SpO2 enviado • temperatura indisponível"
                             }
                             .onFailure { error ->
                                 Log.e(APP_TAG, "Could not send SpO2 to Python", error)
+                                _temperatureMessage.value = "Falha no envio ao servidor"
                             }
                     }
                 }
@@ -153,6 +164,7 @@ class TrackingManager @Inject constructor(@ApplicationContext private val contex
     }
 
     fun disconnect() {
+        measurementJob?.cancel()
         healthTrackingService?.let { service ->
             service.disconnectService()
             healthTrackingService = null
@@ -166,20 +178,40 @@ class TrackingManager @Inject constructor(@ApplicationContext private val contex
             return
         }
 
-        spO2Tracker = initSpO2Tracker()
-        spO2Tracker?.setEventListener(spO2TrackerListener) ?: run {
-            scope.launch {
-                _messageState.emit(MessageState.TrackerNotInitialized)
+        measurementJob?.cancel()
+        spO2Tracker?.unsetEventListener()
+        temperature = SkinTemperatureReading(status = "nao_solicitada")
+        _temperatureMessage.value = "Medindo temperatura…"
+        _spO2State.value = DataState.Initial
+        _spO2StatusState.value = SpO2Status.CALCULATING
+        measurementJob = scope.launch {
+            try {
+                temperature = SkinTemperatureReader.read(healthTrackingService!!, context)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.e(APP_TAG, "Temperature measurement failed", error)
+                temperature = SkinTemperatureReading(status = "erro")
+            }
+            _temperatureMessage.value = temperature.value?.let {
+                "Temperatura: %.1f °C".format(it)
+            } ?: "Temperatura indisponível: ${temperature.status}"
+            withContext(Dispatchers.Main) {
+                spO2Tracker = initSpO2Tracker()
+                spO2Tracker?.setEventListener(spO2TrackerListener) ?: run {
+                    _messageState.emit(MessageState.TrackerNotInitialized)
+                }
             }
         }
     }
 
     fun stopSpO2Measurement(isManuallyTriggered: Boolean) {
+        measurementJob?.cancel()
+        if (isManuallyTriggered) {
+            _spO2StatusState.value = SpO2Status.STOPPED
+        }
         spO2Tracker?.let { tracker ->
             tracker.unsetEventListener()
-            if (isManuallyTriggered) {
-                _spO2StatusState.value = SpO2Status.STOPPED
-            }
         }
     }
 

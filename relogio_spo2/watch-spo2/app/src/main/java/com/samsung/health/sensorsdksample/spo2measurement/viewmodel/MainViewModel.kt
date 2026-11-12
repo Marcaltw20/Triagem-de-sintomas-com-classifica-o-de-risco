@@ -33,6 +33,7 @@ class MainViewModel @Inject constructor(
     val connectionState: StateFlow<ConnectionState> = trackingManager.connectionState
     val spO2StatusState: StateFlow<SpO2Status> = trackingManager.spO2StatusState
     val messageState = trackingManager.messageState
+    val temperatureMessage = trackingManager.temperatureMessage
 
     override fun onCleared() {
         super.onCleared()

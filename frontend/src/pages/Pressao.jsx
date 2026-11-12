@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
+import { formatarTemperatura } from "../temperatura.js";
 import "./Triagem.css";
 import "./Pressao.css";
 
@@ -29,7 +30,8 @@ export default function Pressao({
   const [erroLeitura, setErroLeitura] = useState("");
   const [medindo, setMedindo] = useState(false);
   const [manual, setManual] = useState({ pas: "", pad: "", fc: "" });
-  const [vitais, setVitais] = useState({ spo2: config?.spo2 ?? 98, temp: config?.temp ?? 36.5 });
+  const [vitais, setVitais] = useState({ spo2: config?.spo2 ?? 98, temp: config?.temp ?? 36.5, temp_tipo: "CORPORAL", temp_timestamp: null });
+  const [temperaturaStatus, setTemperaturaStatus] = useState("");
   // "aguardando" (relógio), "recebido" (veio do relógio), "falhou" (relógio não enviou) ou "manual"
   const [spo2Estado, setSpo2Estado] = useState(comRelogio ? "aguardando" : "manual");
   const [pressaoPronta, setPressaoPronta] = useState(null);
@@ -91,6 +93,9 @@ export default function Pressao({
     };
     setSpo2Estado("aguardando");
     spo2EstadoRef.current = "aguardando";
+    setTemperaturaStatus("");
+    vitaisRef.current = { ...vitaisRef.current, temp: config?.temp ?? 36.5, temp_tipo: "CORPORAL", temp_timestamp: null };
+    setVitais(vitaisRef.current);
 
     let inicio;
     try {
@@ -106,7 +111,12 @@ export default function Pressao({
       try {
         const { leitura: l } = await api.ultimaSpo2();
         if (ativo && l && l.recebido_em_ms >= inicio && spo2EstadoRef.current === "aguardando") {
-          vitaisRef.current = { ...vitaisRef.current, spo2: l.spo2 };
+          const temTemperatura = l.temperatura_status === "ok" && Number.isFinite(l.temperatura) && l.temperatura_timestamp;
+          vitaisRef.current = {
+            ...vitaisRef.current, spo2: l.spo2,
+            ...(temTemperatura ? { temp: l.temperatura, temp_tipo: "PELE", temp_timestamp: l.temperatura_timestamp } : {}),
+          };
+          setTemperaturaStatus(temTemperatura ? "ok" : (l.temperatura_status || "nao_solicitada"));
           setVitais(vitaisRef.current);
           setSpo2Estado("recebido");
           return;
@@ -381,13 +391,18 @@ export default function Pressao({
               Temperatura (°C)
               <input
                 id="vital-temp"
-                type="number"
+                type={vitais.temp_tipo === "PELE" ? "text" : "number"}
                 step="0.1"
-                value={vitais.temp}
+                readOnly={vitais.temp_tipo === "PELE"}
+                value={vitais.temp_tipo === "PELE" ? formatarTemperatura(vitais.temp) : vitais.temp}
                 onChange={(e) => setVitais({ ...vitais, temp: e.target.value })}
               />
             </label>
-            <p>A temperatura ainda não tem sensor. Confira antes de terminar a medição.</p>
+            {vitais.temp_tipo === "PELE" ? (
+              <p role="status">✓ Temperatura recebida do relógio.</p>
+            ) : (
+              <p>{temperaturaStatus && temperaturaStatus !== "ok" ? `Temperatura do relógio indisponível (${temperaturaStatus}). ` : ""}Confira o valor manual antes de terminar a medição.</p>
+            )}
           </aside>
         </div>
       </main>

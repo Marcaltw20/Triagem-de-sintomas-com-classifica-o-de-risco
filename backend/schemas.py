@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 # --------------------------------------------------------------------------- #
@@ -138,9 +138,17 @@ class ClassificarIn(BaseModel):
     pulso_irregular: bool = False  # o medidor de pressão avisou batimento irregular (pulso anormal)
     spo2: float | None = None  # sem valor = SPO2_MANUAL do .env
     temp: float | None = None  # sem valor = TEMP_MANUAL do .env
+    temp_tipo: Literal["CORPORAL", "PELE"] = "CORPORAL"
+    temp_timestamp: int | None = Field(default=None, gt=0)
     explicar: bool = True      # False no modo tempo real (quem explica é a sessão de voz)
     perfil: Perfil | None = None
     registro: RegistroTriagem | None = None  # dados para gravar no banco (sem = não grava)
+
+    @model_validator(mode="after")
+    def exigir_temperatura_da_pele(self):
+        if self.temp_tipo == "PELE" and (self.temp is None or self.temp_timestamp is None):
+            raise ValueError("Temperatura da pele exige valor e horário da medição; não usa o padrão manual.")
+        return self
 
 
 class ClassificarOut(BaseModel):
@@ -157,6 +165,19 @@ class Spo2RelogioIn(BaseModel):
     """O que o app do relógio envia para POST /spo2 (mesmo formato do projeto-spo2)."""
     spo2: int = Field(ge=0, le=100)
     timestamp: int = Field(gt=0)  # horário da medição no relógio (ms desde 1970)
+    temperatura: float | None = Field(default=None, ge=-20, le=60, allow_inf_nan=False)
+    temperatura_tipo: Literal["PELE"] = "PELE"
+    temperatura_timestamp: int | None = Field(default=None, gt=0)
+    temperatura_status: Literal["ok", "sem_permissao", "nao_suportado", "timeout", "erro", "nao_solicitada"] = "nao_solicitada"
+
+    @model_validator(mode="after")
+    def validar_temperatura(self):
+        if self.temperatura is not None:
+            if self.temperatura_status != "ok" or self.temperatura_timestamp is None:
+                raise ValueError("Temperatura medida exige status ok e timestamp.")
+        elif self.temperatura_status == "ok":
+            raise ValueError("Status ok exige uma temperatura medida.")
+        return self
 
 
 class Spo2Leitura(BaseModel):
@@ -164,6 +185,10 @@ class Spo2Leitura(BaseModel):
     timestamp: int        # horário da medição no relógio (ms)
     recebido_em_ms: int   # quando o backend recebeu (ms)
     simulado: bool
+    temperatura: float | None = None
+    temperatura_tipo: Literal["PELE"] = "PELE"
+    temperatura_timestamp: int | None = None
+    temperatura_status: str = "nao_solicitada"
 
 
 class Spo2InicioOut(BaseModel):

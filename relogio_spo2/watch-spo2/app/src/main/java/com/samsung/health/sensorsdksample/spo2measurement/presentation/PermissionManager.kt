@@ -26,8 +26,8 @@ import androidx.core.content.ContextCompat
 class PermissionManager(private val activity: ComponentActivity) {
 
     private var permissionLauncher =
-        activity.registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
+        activity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (isPermissionGranted()) {
                 onSuccess()
             } else {
                 onFailure()
@@ -41,13 +41,20 @@ class PermissionManager(private val activity: ComponentActivity) {
     fun requestPermission(onSuccess: () -> Unit = {}, onFailure: () -> Unit = {}) {
         this.onSuccess = onSuccess
         this.onFailure = onFailure
-        permissionLauncher.launch(getSpO2Permission())
+        val permissions = if (Build.VERSION.SDK_INT >= 36) {
+            arrayOf(getSpO2Permission(), HealthPermissions.READ_SKIN_TEMPERATURE)
+        } else arrayOf(getSpO2Permission())
+        permissionLauncher.launch(permissions)
     }
 
     fun isPermissionGranted() = ContextCompat.checkSelfPermission(
         activity,
         getSpO2Permission()
     ) == PackageManager.PERMISSION_GRANTED
+
+    fun needsTemperaturePermission(): Boolean = Build.VERSION.SDK_INT >= 36 &&
+        ContextCompat.checkSelfPermission(activity, HealthPermissions.READ_SKIN_TEMPERATURE) !=
+        PackageManager.PERMISSION_GRANTED
 
     fun shouldShowRationale(): Boolean =
         shouldShowRequestPermissionRationale(activity, getSpO2Permission())

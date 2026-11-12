@@ -1,5 +1,5 @@
 // Fluxo do atendimento:
-//   identificacao -> triagem (conversa com a LLM) -> pressao (Omron) -> conclusao (resultado da árvore)
+//   consentimento -> identificacao -> triagem -> pressao -> conclusao
 // Da triagem até a medição, a câmera confere se é a mesma pessoa (backend/presenca.py); se outra
 // pessoa ficar no lugar, a triagem é cancelada (tela "cancelada").
 // Toda a comunicação com o backend passa por api.js.
@@ -14,6 +14,7 @@ import Conclusao from "./pages/Conclusao";
 import Encaminhamento from "./pages/Encaminhamento";
 import Configuracoes from "./pages/Configuracoes";
 import Cancelada from "./pages/Cancelada";
+import TermoPrivacidade from "./pages/TermoPrivacidade";
 
 const INTERVALO_PRESENCA_MS = 1000;
 const ETAPAS_VIGIADAS = ["triagem", "pressao"];
@@ -134,7 +135,7 @@ const ACESSIBILIDADE_VAZIA = { tem: null, tipos: [], consegue: {} };
 export default function App() {
   const rt = useRealtime();
   // #configuracoes no endereço abre direto a tela de configuração
-  const [etapa, setEtapa] = useState(window.location.hash === "#configuracoes" ? "configuracoes" : "identificacao");
+  const [etapa, setEtapa] = useState(window.location.hash === "#configuracoes" ? "configuracoes" : "consentimento");
   const [config, setConfig] = useState(null);
   const [erroConfig, setErroConfig] = useState("");
   const [tempoReal, setTempoReal] = useState(true); // modo de conversa efetivo (pode cair para o clássico)
@@ -174,7 +175,7 @@ export default function App() {
   function sairConfiguracoes() {
     window.history.replaceState(null, "", window.location.pathname);
     carregarConfig(); // os ajustes novos valem a partir desta triagem
-    setEtapa("identificacao");
+    reiniciar();
   }
 
   useEffect(() => rt.desconectar, [rt.desconectar]);
@@ -224,6 +225,8 @@ export default function App() {
         ...pressao,
         spo2: Number(vitais.spo2),
         temp: Number(vitais.temp),
+        temp_tipo: vitais.temp_tipo ?? "CORPORAL",
+        temp_timestamp: vitais.temp_timestamp ?? null,
         explicar: !tempoRealRef.current,
         registro: {
           paciente: { nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.nascimento },
@@ -271,7 +274,7 @@ export default function App() {
     setClassificacao(null);
     setErroClassificar("");
     setTempoReal(config?.modo_padrao !== "classico");
-    setEtapa("identificacao");
+    setEtapa("consentimento");
   }
 
   const [paciente, setPaciente] = useState({
@@ -566,8 +569,8 @@ if (etapa === "triagem") {
     );
   }
 
-  return (
-    <div className="aplicacao">
+  const exibindoTermo = etapa === "consentimento";
+  const cabecalho = (
       <header className="cabecalho">
         <div className="marca">
           <div className="logo-fundo">
@@ -584,25 +587,29 @@ if (etapa === "triagem") {
         </div>
 
         <div className="etapas">
-          <div className="etapa ativa">
-            <span>1</span>
-            Identificação
-          </div>
+          {!exibindoTermo && (
+            <>
+              <div className="etapa ativa">
+                <span>1</span>
+                Identificação
+              </div>
 
-          <div className="etapa">
-            <span>2</span>
-            Conversa
-          </div>
+              <div className="etapa">
+                <span>2</span>
+                Conversa
+              </div>
 
-          <div className="etapa">
-            <span>3</span>
-            Pressão
-          </div>
+              <div className="etapa">
+                <span>3</span>
+                Pressão
+              </div>
 
-          <div className="etapa">
-            <span>4</span>
-            Conclusão
-          </div>
+              <div className="etapa">
+                <span>4</span>
+                Conclusão
+              </div>
+            </>
+          )}
 
           {(config?.omron_simulado || config?.spo2_simulado) && <span className="selo-teste">Modo de teste</span>}
 
@@ -617,7 +624,20 @@ if (etapa === "triagem") {
           </button>
         </div>
       </header>
+  );
 
+  if (exibindoTermo) {
+    return (
+      <div className="aplicacao">
+        {cabecalho}
+        <TermoPrivacidade aoAceitar={() => setEtapa("identificacao")} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="aplicacao">
+      {cabecalho}
       <main className="principal">
         <div className="introducao">
           <div className="icone-boas-vindas">♡</div>

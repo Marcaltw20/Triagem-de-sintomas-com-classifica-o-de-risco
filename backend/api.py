@@ -190,6 +190,8 @@ async def classificar(dados: ClassificarIn):
         resultado = classificar_risco(pas=dados.pas, pad=dados.pad, fc=dados.fc,
                                       spo2=sat, temp=temp, sintomas=dados.sintomas,
                                       pulso_irregular=dados.pulso_irregular, **perfil)
+        resultado["dados"]["temperatura_tipo"] = dados.temp_tipo
+        resultado["dados"]["temperatura_timestamp"] = dados.temp_timestamp
     except DadosInvalidos as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -219,7 +221,9 @@ async def classificar(dados: ClassificarIn):
 @relogio.post("/spo2", status_code=201)
 def receber_spo2_relogio(dados: Spo2RelogioIn):
     """Chamada pelo app do relógio (SpO2Uploader.kt) a cada medição concluída."""
-    spo2.registrar(dados.spo2, dados.timestamp)
+    spo2.registrar(dados.spo2, dados.timestamp, temperatura=dados.temperatura,
+                  temperatura_timestamp=dados.temperatura_timestamp,
+                  temperatura_status=dados.temperatura_status)
     return {"received": True}
 
 
