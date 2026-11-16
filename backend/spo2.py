@@ -49,15 +49,20 @@ def _salvar_csv(leitura: dict[str, Any]) -> None:
                     leitura["simulado"]])
 
 
-def registrar(spo2: int, timestamp: int, simulado: bool = False) -> dict[str, Any]:
+def registrar(spo2: int, timestamp: int, simulado: bool = False, *,
+              temperatura: float | None = None, temperatura_timestamp: int | None = None,
+              temperatura_status: str = "nao_solicitada") -> dict[str, Any]:
     """Guarda uma leitura recebida do relógio (ou simulada)."""
     global _ultima
     if not 0 <= spo2 <= 100:
         raise ValueError("spo2 precisa estar entre 0 e 100")
     if timestamp <= 0:
         raise ValueError("timestamp precisa ser positivo")
-    _ultima = {"spo2": spo2, "timestamp": timestamp, "recebido_em_ms": agora_ms(), "simulado": simulado}
-    _salvar_csv(_ultima)
+    leitura = {"spo2": spo2, "timestamp": timestamp, "recebido_em_ms": agora_ms(), "simulado": simulado,
+               "temperatura": temperatura, "temperatura_tipo": "PELE",
+               "temperatura_timestamp": temperatura_timestamp, "temperatura_status": temperatura_status}
+    _salvar_csv(leitura)
+    _ultima = leitura
     log.info("SpO2 recebido%s: %s%%", " (simulado)" if simulado else "", spo2)
     return _ultima
 

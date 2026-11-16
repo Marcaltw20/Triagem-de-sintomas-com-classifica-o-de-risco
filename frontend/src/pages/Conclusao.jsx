@@ -1,5 +1,6 @@
 
 import "./Conclusao.css";
+import { formatarTemperatura, formatarTextoTemperatura } from "../temperatura.js";
 
 // Resultado da triagem: a cor que a árvore de decisão escolheu (POST /api/classificar),
 // os dados usados e a conversa com a assistente.
@@ -84,7 +85,7 @@ export default function Conclusao({
               <strong>{tempoAlvo(r.tempo_alvo_min)}</strong>
               <p>{r.orientacao}</p>
               <p className="conclusao-motivo">
-                <span>Motivo:</span> {r.motivo}
+                <span>Motivo:</span> {formatarTextoTemperatura(r.motivo)}
               </p>
               {classificacao?.texto && (
                 <button type="button" className="conclusao-ouvir" onClick={aoOuvirDeNovo}>
@@ -167,7 +168,7 @@ export default function Conclusao({
 
             <div>
               <span>Temperatura</span>
-              <strong>{vitais ? `${vitais.temp} °C` : "—"}</strong>
+              <strong>{vitais ? `${formatarTemperatura(vitais.temp)} °C` : "—"}</strong>
             </div>
           </div>
 
@@ -197,7 +198,7 @@ export default function Conclusao({
                   {r.outros_achados.map((a, i) => (
                     <li key={i}>
                       <span className={`conclusao-ponto cor-${a.cor}`} />
-                      {a.motivo}
+                      {formatarTextoTemperatura(a.motivo)}
                     </li>
                   ))}
                 </ul>

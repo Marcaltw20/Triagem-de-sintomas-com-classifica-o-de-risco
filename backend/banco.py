@@ -252,10 +252,11 @@ def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: 
              round(vitais["pas"]), round(vitais["pad"]), round(vitais["fc"]),
              "SENSOR" if pressao_sensor else "MANUAL", bool(registro.get("pressao_experimental"))))
         cur.execute(
-            "INSERT INTO leitura_sinais_vitais (triagem_id, dispositivo_id, spo2, temperatura, origem, experimental) "
-            "VALUES (%s, %s, %s, %s, %s, %s)",
+            "INSERT INTO leitura_sinais_vitais (triagem_id, dispositivo_id, spo2, temperatura, origem, experimental, temperatura_tipo, temperatura_timestamp) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             (triagem_id, _id_dispositivo(cur, ID_RELOGIO if spo2_sensor else None), round(vitais["spo2"]),
-             vitais["temp"], "SENSOR" if spo2_sensor else "MANUAL", bool(registro.get("spo2_experimental"))))
+             vitais["temp"], "SENSOR" if spo2_sensor else "MANUAL", bool(registro.get("spo2_experimental")),
+             resultado["dados"].get("temperatura_tipo", "CORPORAL"), resultado["dados"].get("temperatura_timestamp")))
 
         cur.execute(
             "INSERT INTO classificacao_risco (triagem_id, cor, nivel, tempo_alvo_min, motivo, achados_secundarios, "

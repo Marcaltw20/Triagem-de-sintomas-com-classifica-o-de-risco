@@ -16,6 +16,7 @@
 package com.samsung.health.sensorsdksample.spo2measurement.presentation
 
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,11 +51,12 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
         permissionManager = PermissionManager(this)
-        if (!permissionManager.isPermissionGranted()) {
+        if (!permissionManager.isPermissionGranted() || permissionManager.needsTemperaturePermission()) {
             permissionManager.requestPermission()
         }
 
@@ -70,6 +72,7 @@ class MainActivity : ComponentActivity() {
             val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
             val spO2State by viewModel.spO2State.collectAsStateWithLifecycle()
             val spO2Status by viewModel.spO2StatusState.collectAsStateWithLifecycle()
+            val temperatureMessage by viewModel.temperatureMessage.collectAsStateWithLifecycle()
 
             LaunchedEffect(connectionState) {
                 handleConnectionState(connectionState)
@@ -82,6 +85,7 @@ class MainActivity : ComponentActivity() {
             WearApp(
                 spO2Value = spO2,
                 spO2Status = spO2Status,
+                temperatureMessage = temperatureMessage,
                 startSpO2Measurement = { startSpO2Measurement() },
                 stopSpO2Measurement = { viewModel.stopSpO2Measurement(true) },
                 permissionRationaleType = permissionRationaleType,
@@ -97,6 +101,11 @@ class MainActivity : ComponentActivity() {
         }
 
         viewModel.connect()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopSpO2Measurement(true)
     }
 
     override fun onDestroy() {

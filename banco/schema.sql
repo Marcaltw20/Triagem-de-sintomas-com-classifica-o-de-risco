@@ -115,8 +115,10 @@ CREATE TABLE IF NOT EXISTS dispositivo (
   tipo           ENUM('MONITOR_PA', 'RELOGIO') NOT NULL,
   modelo         VARCHAR(100) NOT NULL,
   protocolo      ENUM('BLE', 'WIFI_HTTP') NOT NULL,
-  endereco       VARCHAR(30) NULL                    -- endereço Bluetooth, quando houver
+  endereco       VARCHAR(36) NULL                    -- endereço Bluetooth ou UUID do macOS
 ) ENGINE=InnoDB;
+
+ALTER TABLE dispositivo MODIFY endereco VARCHAR(36) NULL;
 
 -- Uma triagem tem 1..* leituras: uma do medidor de pressão (pas, pad, fc) e uma da
 -- saturação/temperatura (spo2 do relógio, temperatura digitada). Campos que a leitura não mede ficam NULL.
@@ -150,6 +152,10 @@ CREATE TABLE IF NOT EXISTS classificacao_risco (
   CONSTRAINT fk_cr_triagem FOREIGN KEY (triagem_id) REFERENCES triagem(id) ON DELETE CASCADE,
   INDEX idx_cr_cor (cor)
 ) ENGINE=InnoDB;
+
+-- Preserva o campo temperatura e acrescenta procedência para bancos já existentes.
+ALTER TABLE leitura_sinais_vitais ADD COLUMN IF NOT EXISTS temperatura_tipo ENUM('CORPORAL', 'PELE') NOT NULL DEFAULT 'CORPORAL';
+ALTER TABLE leitura_sinais_vitais ADD COLUMN IF NOT EXISTS temperatura_timestamp BIGINT NULL;
 
 CREATE TABLE IF NOT EXISTS regra_combinacao (
   id        VARCHAR(20) PRIMARY KEY,                 -- ex.: LARANJA_03

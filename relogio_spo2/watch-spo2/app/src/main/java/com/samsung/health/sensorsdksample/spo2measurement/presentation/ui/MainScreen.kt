@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material3.AlertDialog
@@ -51,6 +52,7 @@ import com.samsung.health.sensorsdksample.spo2measurement.presentation.theme.SpO
 fun WearApp(
     spO2Value: String,
     spO2Status: SpO2Status,
+    temperatureMessage: String,
     startSpO2Measurement: () -> Unit,
     stopSpO2Measurement: () -> Unit,
     permissionRationaleType: PermissionRationaleType? = null,
@@ -86,10 +88,11 @@ fun WearApp(
                 Subtitle(subtitle)
             }
 
-            Result(
-                modifier = Modifier.align(Alignment.Center),
-                spO2Value
-            )
+            Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                Result(modifier = Modifier, spO2Value)
+                Text(text = temperatureMessage, style = AppTypography.bodySmall,
+                    textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 18.dp))
+            }
 
             if (spO2Status.isInProgress()) {
                 CircularProgressIndicator(

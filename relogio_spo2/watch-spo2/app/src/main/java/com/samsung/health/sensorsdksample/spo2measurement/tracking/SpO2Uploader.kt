@@ -2,14 +2,22 @@ package com.samsung.health.sensorsdksample.spo2measurement.tracking
 
 import java.net.HttpURLConnection
 import java.net.URL
+import org.json.JSONObject
 
 object SpO2Uploader {
     // Backend da triagem (triagem_inteligente/backend, rodando com --host 0.0.0.0).
     // O endereço certo aparece na tela de configuração do totem, em "Relógio".
     private const val SERVER_URL = "http://192.168.15.9:8000/spo2"
 
-    fun upload(spo2: Int, timestamp: Long): Result<Unit> = runCatching {
-        val json = """{"spo2":$spo2,"timestamp":$timestamp}"""
+    fun upload(spo2: Int, timestamp: Long, temperature: SkinTemperatureReading): Result<Unit> = runCatching {
+        val json = JSONObject().apply {
+            put("spo2", spo2)
+            put("timestamp", timestamp)
+            put("temperatura", temperature.value ?: JSONObject.NULL)
+            put("temperatura_tipo", "PELE")
+            put("temperatura_timestamp", temperature.timestamp ?: JSONObject.NULL)
+            put("temperatura_status", temperature.status)
+        }.toString()
         val connection = URL(SERVER_URL).openConnection() as HttpURLConnection
 
         try {

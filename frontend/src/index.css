@@ -241,6 +241,44 @@ button {
   background: #2675b6;
 }
 
+.termo-privacidade h2 {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.termo-privacidade p {
+  margin: 12px 0 0;
+  line-height: 1.55;
+}
+
+.termo-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.termo-acoes .botao-continuar {
+  flex: 1 1 13rem;
+  max-width: none;
+  margin: 0;
+  background: #2675b6;
+}
+
+.termo-acoes .botao-continuar:hover {
+  background: #1e5f96;
+}
+
+.termo-acoes .botao-recusar {
+  border: 1px solid #8197af;
+  background: white;
+  color: #233b57;
+}
+
+.termo-acoes .botao-recusar:hover {
+  background: #edf3f9;
+}
+
 .mensagem-erro {
   color: #b42318;
   font-size: 13px;
