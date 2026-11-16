@@ -3,7 +3,7 @@ Banco de dados MySQL/MariaDB (XAMPP) da triagem.
 
 O esquema está em ../banco/schema.sql (feito a partir do diagrama de classes). Ao iniciar, o
 backend chama `inicializar()`, que cria o banco e as tabelas se ainda não existirem e preenche os
-catálogos a partir da árvore de decisão (sintomas, fatores de risco e as 27 regras de combinação)
+catálogos a partir da árvore de decisão (sintomas, fatores de risco e as regras de combinação)
 e os dispositivos a partir da tela de configuração.
 
 Se o MySQL estiver desligado, a triagem continua funcionando normalmente, só não grava nada; a
@@ -88,10 +88,11 @@ def _comandos_schema() -> list[str]:
 
 
 def _regras_combinacao() -> list[dict[str, str]]:
-    """As 27 regras da árvore, com a condição copiada do próprio código (arvore_decisao.py)."""
+    """As regras de combinação da árvore, com a condição copiada do próprio código (arvore_decisao.py).
+    As da gestação ([exceção obstétrica]) têm a cor dentro da própria regra: (cor, motivo, condição)."""
     fonte = ARQUIVO_ARVORE.read_text(encoding="utf-8")
     listas = {"COMBINACOES_ALARME": "VERMELHO", "COMBINACOES_MUITO_URGENTES": "LARANJA",
-              "COMBINACOES_MODERADAS": "AMARELO"}
+              "COMBINACOES_MODERADAS": "AMARELO", "COMBINACOES_GESTACAO": "GESTACAO"}
     regras = []
     for no in ast.parse(fonte).body:
         alvo = getattr(no, "target", None) or (no.targets[0] if isinstance(no, ast.Assign) else None)
@@ -99,9 +100,13 @@ def _regras_combinacao() -> list[dict[str, str]]:
         if nome not in listas or not isinstance(no.value, ast.List):
             continue
         for i, item in enumerate(no.value.elts, start=1):
-            motivo = ast.literal_eval(item.elts[0])
-            condicao = ast.get_source_segment(fonte, item.elts[1].body)
-            regras.append({"id": f"{listas[nome]}_{i:02d}", "cor": listas[nome], "motivo": motivo[:255],
+            if listas[nome] == "GESTACAO":
+                cor, motivo = ast.literal_eval(item.elts[0]), ast.literal_eval(item.elts[1])
+                condicao, motivo = ast.get_source_segment(fonte, item.elts[2].body), motivo + " [exceção obstétrica]"
+            else:
+                cor, motivo = listas[nome], ast.literal_eval(item.elts[0])
+                condicao = ast.get_source_segment(fonte, item.elts[1].body)
+            regras.append({"id": f"{listas[nome]}_{i:02d}", "cor": cor, "motivo": motivo[:255],
                            "condicao": re.sub(r"\s+", " ", condicao)})
     return regras
 
@@ -119,10 +124,14 @@ def _sincronizar_catalogos(cur) -> None:
                             "ON DUPLICATE KEY UPDATE rotulo = VALUES(rotulo), descricao = VALUES(descricao), "
                             "grupo = VALUES(grupo), cor_base = VALUES(cor_base)",
                             (chave, rotulo, descricao, grupo, cor))
-    for r in _regras_combinacao():
+    regras = _regras_combinacao()
+    for r in regras:
         cur.execute("INSERT INTO regra_combinacao (id, condicao, cor, motivo) VALUES (%s, %s, %s, %s) "
                     "ON DUPLICATE KEY UPDATE condicao = VALUES(condicao), cor = VALUES(cor), motivo = VALUES(motivo)",
                     (r["id"], r["condicao"], r["cor"], r["motivo"]))
+    # regras que saíram da árvore saem também do banco (a tabela é só um espelho do código)
+    cur.execute("DELETE FROM regra_combinacao WHERE id NOT IN (" + ", ".join(["%s"] * len(regras)) + ")",
+                [r["id"] for r in regras])
 
 
 def _sincronizar_dispositivos(cur) -> None:

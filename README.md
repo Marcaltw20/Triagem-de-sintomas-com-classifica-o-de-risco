@@ -13,7 +13,7 @@ pressão, trabalhar sem medidor ou sem relógio e ligar o **modo de teste**, que
 |---|---|---|
 | `frontend/` | Tela do totem (React + Vite) | `Tcc_front` (área de trabalho), ligado ao backend |
 | `backend/` | Servidor FastAPI: LLM, medidor de pressão e chamada à árvore | `codigos/triagem_llm/backend` |
-| `arvore_decisao/` | Árvore de decisão (classificação de risco) e seus 108 testes | `codigos/arvore_decisao` |
+| `arvore_decisao/` | Árvore de decisão (classificação de risco pelo Manchester) e seus 142 testes | `codigos/arvore_decisao` |
 | `pressao_arterial/` | Comunicação Bluetooth com o Omron | `codigos/Pressão arterial` |
 | `relogio_spo2/` | App do Galaxy Watch 6 que mede SpO2 e envia ao backend | `projeto-spo2` (área de trabalho) |
 | `banco/` | Esquema do banco MySQL (`schema.sql`), feito a partir do diagrama de classes | — |
@@ -91,12 +91,12 @@ Cada triagem fica gravada num banco MySQL/MariaDB local, o do XAMPP. O esquema e
 | Usuario, Atendente, Gestor | `usuario` (uma tabela, coluna `perfil`) |
 | Paciente | `paciente` (o CPF não se repete: a mesma pessoa reaproveita o cadastro) |
 | Triagem | `triagem` (status `CONCLUIDA` ou `ENCAMINHADA`, modo `VOZ`/`ESCRITO`, resumo e conversa) |
-| SintomaRelatado / Sintoma (91) | `sintoma_relatado` / `sintoma` |
+| SintomaRelatado / Sintoma | `sintoma_relatado` / `sintoma` |
 | FatorRisco (7) | `fator_risco` + `triagem_fator_risco` |
 | LeituraSinaisVitais | `leitura_sinais_vitais` (uma linha da pressão e uma da saturação/temperatura; `origem` SENSOR ou MANUAL e `experimental` = modo de teste) |
 | Dispositivo | `dispositivo` (os medidores da tela de configuração e o relógio) |
 | ClassificacaoRisco | `classificacao_risco` |
-| RegraCombinacao (27) | `regra_combinacao` |
+| RegraCombinacao | `regra_combinacao` |
 | CorRisco | `ENUM` nas colunas de cor |
 
 AssistenteVoz e ArvoreDecisao são serviços (código), sem tabela. Os catálogos (sintomas, fatores de
@@ -227,31 +227,57 @@ vale o que está em `backend/ajustes.json` (apague esse arquivo para voltar ao `
 Se o modo tempo real não conectar (microfone negado ou falha na OpenAI), a conversa continua
 sozinha no modo clássico, por escrito.
 
-## Sinais vitais na árvore: Protocolo de Manchester
+## Árvore de decisão: Protocolo de Manchester
 
-Os sinais vitais seguem os discriminadores do Sistema Manchester, usando tudo o que os medidores
-informam (pressão, batimentos e aviso de batimento irregular do Omron; saturação do relógio;
-temperatura):
+A árvore inteira segue um único protocolo de referência, citado regra por regra no código
+(`arvore_decisao/arvore_decisao.py`):
 
-| Discriminador | Regra | Cor |
-|---|---|---|
-| Choque | PAS < 90 mmHg **com** pulso anormal | Vermelho |
-| SatO2 muito baixa | SpO2 < 90% em ar ambiente | Laranja |
-| Pulso anormal | FC < 60 ou > 100 bpm, ou batimento irregular avisado pelo Omron | Laranja |
-| Pressão baixa | PAS < 90 mmHg sem pulso anormal | Laranja |
-| Muito quente / Quente / Febrícula | ≥ 41 °C / 38,5–40,9 °C / 37,5–38,4 °C | Laranja / Amarelo / Verde |
+> **Protocolo de Classificação de Risco (Baseado no protocolo de MANCHESTER).** Secretaria Municipal
+> de Saúde de Aparecida de Goiânia, 2025. Documento público, com 24 fluxogramas de adultos e uma
+> tabela de sinais vitais.
 
-Duas regras ficam **além** do Manchester, marcadas no código: a crise hipertensiva (≥ 180/120, das
-Diretrizes Brasileiras de Hipertensão), porque o totem mede a pressão de todos, e o NEWS2 adaptado,
-como complemento que só pode subir a cor. Os limites vieram de material do UNA-SUS/UFSC e de
-estudos brasileiros sobre o Manchester; confira com o manual oficial vigente na instituição.
-Em menores de 16 anos os limites de pulso são de adulto (lado seguro), e o resultado avisa a
-enfermagem para confirmar.
+- **Cor de cada sintoma:** é a cor do discriminador correspondente no fluxograma da queixa (ex.:
+  "Dor precordial" laranja no fluxograma Dor torácica). Sintoma sem discriminador próprio segue o
+  item "Evento recente (< 7 dias)" do fluxograma em que se encaixa (verde) ou, se o fluxograma não
+  tem esse item, fica azul.
+- **Dor:** pela escala da seção 6: leve 1–3 verde, moderada 4–6 amarelo, intensa 7–10 laranja. A
+  assistente pergunta a nota de 0 a 10.
+- **Duração:** queixa que daria verde, mas começou há mais de 7 dias e não piorou, fica azul
+  (fluxograma geral, "Problema recente?"). A assistente pergunta desde quando.
+- **Sinais vitais medidos** (Anexo III; temperatura pelo Anexo II). Quando o protocolo dá duas cores
+  para a mesma faixa, vale a mais grave:
+
+| Sinal | Vermelho | Laranja | Amarelo | Verde |
+|---|---|---|---|---|
+| Batimentos | < 40 | 40–59 ou ≥ 150, ou ritmo irregular (Omron) | 101–149 | — |
+| Saturação | < 90% | falta de ar com < 92% | 90–94% | — |
+| Pressão | choque: PAS ≤ 80 com FC ≥ 140 ou ≤ 40, suor frio ou confusão | PAS < 80 ou PAD < 50; PAS ≥ 200 | PAS 160–199 ou PAD ≥ 100 | — |
+| Temperatura | ≤ 34 °C | ≥ 41 °C | 38,5–40,9 °C | 37,5–38,4 °C; 34,1–36 °C |
+
+- **Combinações:** só as escritas no protocolo: choque, choque anafilático, dor precordial, falta de
+  ar com saturação < 92%, sangramento vaginal na gestação, ardência ao urinar ou dor de garganta com
+  febre.
+- **Fatores de risco** (diabetes, coração, asma, imunidade baixa, anticoagulante, idade) são
+  registrados, mas, como no protocolo, não mudam a cor. Idade 60+, deficiência e gestação dão
+  atendimento prioritário dentro da cor (Lei 10.048/2000).
+- **Exceção, marcada no código como `[exceção obstétrica]`:** as queixas da gestação
+  (contrações, bebê mexendo menos, pressão alta e pré-eclâmpsia). O protocolo manda a gestante para
+  avaliação própria (seção 4.2); essas regras continuam como estavam até se adotar o protocolo
+  obstétrico do Ministério da Saúde.
+- **Ritmo irregular** avisado pelo Omron segue a definição de "pulso anormal" do Manchester (Rev.
+  Gaúcha Enferm.), que o protocolo de referência não detalha.
+- O **NEWS2** continua no resultado e no banco só como informação: não decide a cor.
+- Abaixo de 14 anos o protocolo usa fluxogramas pediátricos (seção 10): o totem usa os limites de
+  adulto e o resultado avisa a enfermagem para confirmar.
+
+O protocolo é uma adaptação municipal do Manchester; o manual oficial (Grupo Brasileiro de
+Classificação de Risco) é licenciado e não é público. Antes de qualquer uso real, a enfermagem deve
+conferir as regras com o protocolo adotado no serviço.
 
 ## Testes
 
-Árvore de decisão (108 casos: 80 de sintomas e sinais vitais, 18 dos limites do Manchester e 10 de
-idade, sexo e deficiência):
+Árvore de decisão (142 casos, com a cor esperada tirada do protocolo: os 80 pacientes da árvore,
+38 de limites dos sinais vitais, 14 de dor, consciência, combinações e duração, e 10 de perfil):
 
     cd arvore_decisao
     python testes_automaticos.py

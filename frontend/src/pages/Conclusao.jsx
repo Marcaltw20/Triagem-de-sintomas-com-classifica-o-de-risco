@@ -117,7 +117,7 @@ export default function Conclusao({
 
             {r && (
               <span className="conclusao-status">
-                Nível {r.nivel} · NEWS2 {r.news2.total}
+                Nível {r.nivel}
               </span>
             )}
           </div>

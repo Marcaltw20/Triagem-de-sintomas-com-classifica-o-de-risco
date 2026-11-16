@@ -454,7 +454,7 @@ Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem grav
     "atendimento_prioritario": true,
     "motivos_prioridade": ["Deficiência visual", "Pessoa idosa (70 anos)"],
     "observacoes": [],
-    "news2": { "total": 0, "pontos": { "fc": 0, "pas": 0, "spo2": 0, "temp": 0 } },
+    "news2": { "total": 0, "pontos": { "fc": 0, "pas": 0, "spo2": 0, "temp": 0 }, "informativo": true },
     "dados": {
       "vitais": { "pas": 128, "pad": 82, "fc": 76, "spo2": 98, "temp": 36.5 },
       "sintomas": ["dor_toracica", "idoso", "sudorese_fria"],
@@ -465,7 +465,7 @@ Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem grav
 }
 ```
 
-`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou os limites de pulso e o NEWS2 serem de adultos em menores de 16 anos. `texto` é a explicação
+`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou, em menores de 14 anos, que o protocolo usa fluxogramas pediátricos. `news2` é só informativo: não decide a cor. `texto` é a explicação
 falada; vem `null` quando `explicar` é `false`. Se a OpenAI falhar na explicação, o backend
 monta uma frase padrão a partir do resultado, sem devolver erro.
 
