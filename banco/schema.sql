@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS triagem (
   motivo_encaminhamento TEXT NULL,                   -- quando foi encaminhada direto à enfermagem
   motivo_cancelamento TEXT NULL,                     -- quando a câmera cancelou (outra pessoa assumiu)
   conversa            LONGTEXT NULL,                 -- histórico da conversa com a assistente (JSON)
+  consentimento_em    DATETIME NULL,                 -- aceite do termo de privacidade (LGPD)
+  consentimento_versao VARCHAR(20) NULL,             -- versão do termo aceito
   CONSTRAINT fk_triagem_paciente  FOREIGN KEY (paciente_id)  REFERENCES paciente(id),
   CONSTRAINT fk_triagem_atendente FOREIGN KEY (atendente_id) REFERENCES usuario(id) ON DELETE SET NULL,
   INDEX idx_triagem_data (data_hora_inicio),
@@ -75,6 +77,10 @@ CREATE TABLE IF NOT EXISTS triagem (
 
 -- bancos criados antes do cancelamento pela câmera existir
 ALTER TABLE triagem ADD COLUMN IF NOT EXISTS motivo_cancelamento TEXT NULL AFTER motivo_encaminhamento;
+
+-- bancos criados antes do registro do aceite do termo (LGPD)
+ALTER TABLE triagem ADD COLUMN IF NOT EXISTS consentimento_em DATETIME NULL;
+ALTER TABLE triagem ADD COLUMN IF NOT EXISTS consentimento_versao VARCHAR(20) NULL;
 
 CREATE TABLE IF NOT EXISTS fator_risco (
   chave      VARCHAR(50) PRIMARY KEY,

@@ -321,7 +321,7 @@ erradas) e 503 se o banco estiver desligado. O token vale 8 horas (ou até o bac
 | `POST /api/presenca/encerrar` | Desliga a câmera (conclusão, reinício ou volta à identificação); 204 |
 | `POST /api/presenca/simular` | Só administradores, no modo de teste da câmera: `{"evento": "sair" \| "voltar" \| "trocar"}`; 409 sem triagem simulada em andamento |
 | `GET /api/camera/testar?indice=0` | Só administradores: `{"ok", "mensagem", "rostos"}` (abre a câmera e conta os rostos; não guarda imagem) |
-| `POST /api/triagens/cancelada` | Grava a triagem cancelada: `{"paciente", "perfil", "motivo"}` -> `{"triagem_id"}` |
+| `POST /api/triagens/cancelada` | Grava a triagem cancelada: `{"paciente", "perfil", "motivo", "consentimento"}` -> `{"triagem_id"}` |
 
 `estado`: `aguardando_rosto` (ainda não viu ninguém), `presente`, `ausente` (o titular saiu; a tela
 mostra o aviso), `cancelada` (outra pessoa ficou no lugar por `tempo_troca_s`, ou o titular sumiu por
@@ -383,7 +383,7 @@ No modo de teste do medidor, procurar e parear são simulados (não usam o Bluet
 |---|---|
 | `GET /api/banco` | `{"banco", "servidor", "conectado", "erro", "total_triagens", "salvar_no_banco"}`; tenta conectar na hora |
 | `GET /api/triagens?limite=10` | Últimas triagens: `id`, `data_hora_inicio`, `status`, `modo_questionario`, `paciente`, `cor`, `nivel`, `motivo`. 503 se o banco estiver fora |
-| `POST /api/triagens/encaminhamento` | Grava quem foi encaminhado direto à enfermagem: `{"paciente", "perfil", "motivos"}`; devolve `{"triagem_id"}` (`null` se não gravou) |
+| `POST /api/triagens/encaminhamento` | Grava quem foi encaminhado direto à enfermagem: `{"paciente", "perfil", "motivos", "consentimento"}`; devolve `{"triagem_id"}` (`null` se não gravou) |
 
 As triagens concluídas não têm rota própria: são gravadas por `POST /api/classificar` quando a
 requisição traz `registro`. Esquema do banco: `banco/schema.sql`.
@@ -429,12 +429,15 @@ Requisição:
   "resumo": "Febre e tosse há dois dias",
   "conversa": [{ "role": "user", "content": "Estou com febre e tosse" }],
   "pressao_origem": "SENSOR", "pressao_experimental": false,
-  "spo2_origem": "SENSOR", "spo2_experimental": false
+  "spo2_origem": "SENSOR", "spo2_experimental": false,
+  "consentimento": { "aceito_em": "2026-11-16T21:40:12.000Z", "versao_termo": "1.0" }
 }
 ```
 
 `*_origem` é `SENSOR` (veio do aparelho) ou `MANUAL` (digitado); `*_experimental` é `true` quando o
-valor veio do modo de teste. Se o banco estiver desligado ou o CPF for inválido, a classificação
+valor veio do modo de teste. `consentimento` (opcional) é o aceite do termo de privacidade (LGPD): data
+e hora do aceite e versão do termo; vira as colunas `consentimento_em` e `consentimento_versao` da
+triagem (também enviado em `/api/triagens/encaminhamento` e `/api/triagens/cancelada`). Se o banco estiver desligado ou o CPF for inválido, a classificação
 funciona normalmente e só `triagem_id` volta `null`.
 
 Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem gravada, ou `null`):

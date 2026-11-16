@@ -118,6 +118,12 @@ class PacienteIn(BaseModel):
     data_nascimento: str | None = None  # dd/mm/aaaa
 
 
+class Consentimento(BaseModel):
+    """Aceite do termo de privacidade (LGPD), registrado com a triagem."""
+    aceito_em: str = Field(max_length=40)    # data e hora do aceite (ISO 8601)
+    versao_termo: str = Field(max_length=20)
+
+
 class RegistroTriagem(BaseModel):
     """O que o banco precisa além do que a árvore já recebe."""
     paciente: PacienteIn
@@ -128,6 +134,7 @@ class RegistroTriagem(BaseModel):
     pressao_experimental: bool = False   # True = medição simulada (modo de teste)
     spo2_origem: Literal["SENSOR", "MANUAL"] = "MANUAL"
     spo2_experimental: bool = False
+    consentimento: Consentimento | None = None
 
 
 class ClassificarIn(BaseModel):
@@ -274,6 +281,7 @@ class EncaminhamentoIn(BaseModel):
     paciente: PacienteIn
     perfil: Perfil | None = None
     motivos: list[str] = []
+    consentimento: Consentimento | None = None
 
 
 class EncaminhamentoOut(BaseModel):
@@ -366,3 +374,4 @@ class CancelamentoIn(BaseModel):
     paciente: PacienteIn
     perfil: Perfil | None = None
     motivo: str = Field(max_length=500)
+    consentimento: Consentimento | None = None

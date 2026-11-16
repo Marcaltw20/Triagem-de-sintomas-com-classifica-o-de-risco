@@ -215,6 +215,19 @@ def _id_dispositivo(cur, identificador: str | None) -> int | None:
     return linha["id"] if linha else None
 
 
+def _consentimento(c: dict[str, Any] | None) -> tuple[datetime.datetime | None, str | None]:
+    """Data e hora do aceite do termo (horário local do servidor) e versão do termo; (None, None) se não veio."""
+    if not c:
+        return None, None
+    try:
+        quando = datetime.datetime.fromisoformat(str(c.get("aceito_em", "")).replace("Z", "+00:00"))
+        if quando.tzinfo is not None:
+            quando = quando.astimezone().replace(tzinfo=None)
+    except ValueError:
+        quando = None
+    return quando, (c.get("versao_termo") or None)
+
+
 def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: dict[str, Any]) -> int:
     """Grava uma triagem concluída. `resultado` é a saída de arvore_decisao.classificar_risco."""
     from arvore_decisao import COR_BASE
@@ -228,10 +241,11 @@ def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: 
         _sincronizar_dispositivos(cur)
         paciente_id = _salvar_paciente(cur, registro["paciente"], perfil)
         cur.execute(
-            "INSERT INTO triagem (paciente_id, modo_questionario, resumo_relato, status, deficiencias, conversa) "
-            "VALUES (%s, %s, %s, 'CONCLUIDA', %s, %s)",
+            "INSERT INTO triagem (paciente_id, modo_questionario, resumo_relato, status, deficiencias, conversa, "
+            "consentimento_em, consentimento_versao) VALUES (%s, %s, %s, 'CONCLUIDA', %s, %s, %s, %s)",
             (paciente_id, modo, registro.get("resumo"), ",".join(perfil.get("deficiencias") or []) or None,
-             json.dumps(registro.get("conversa") or [], ensure_ascii=False)))
+             json.dumps(registro.get("conversa") or [], ensure_ascii=False),
+             *_consentimento(registro.get("consentimento"))))
         triagem_id = cur.lastrowid
 
         for chave in chaves:
@@ -268,25 +282,29 @@ def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: 
     return triagem_id
 
 
-def salvar_cancelamento(paciente: dict[str, Any], perfil: dict[str, Any], motivo: str) -> int:
+def salvar_cancelamento(paciente: dict[str, Any], perfil: dict[str, Any], motivo: str,
+                        consentimento: dict[str, Any] | None = None) -> int:
     """Triagem cancelada pela câmera (outra pessoa ficou no lugar de quem começou)."""
     with _transacao() as cur:
         paciente_id = _salvar_paciente(cur, paciente, perfil)
         cur.execute(
-            "INSERT INTO triagem (paciente_id, status, deficiencias, motivo_cancelamento) "
-            "VALUES (%s, 'CANCELADA', %s, %s)",
-            (paciente_id, ",".join(perfil.get("deficiencias") or []) or None, motivo[:500]))
+            "INSERT INTO triagem (paciente_id, status, deficiencias, motivo_cancelamento, "
+            "consentimento_em, consentimento_versao) VALUES (%s, 'CANCELADA', %s, %s, %s, %s)",
+            (paciente_id, ",".join(perfil.get("deficiencias") or []) or None, motivo[:500],
+             *_consentimento(consentimento)))
         return cur.lastrowid
 
 
-def salvar_encaminhamento(paciente: dict[str, Any], perfil: dict[str, Any], motivos: list[str]) -> int:
+def salvar_encaminhamento(paciente: dict[str, Any], perfil: dict[str, Any], motivos: list[str],
+                          consentimento: dict[str, Any] | None = None) -> int:
     """Pessoa que não consegue usar o totem sozinha: triagem ENCAMINHADA, sem classificação."""
     with _transacao() as cur:
         paciente_id = _salvar_paciente(cur, paciente, perfil)
         cur.execute(
-            "INSERT INTO triagem (paciente_id, status, deficiencias, motivo_encaminhamento) "
-            "VALUES (%s, 'ENCAMINHADA', %s, %s)",
-            (paciente_id, ",".join(perfil.get("deficiencias") or []) or None, "; ".join(motivos) or None))
+            "INSERT INTO triagem (paciente_id, status, deficiencias, motivo_encaminhamento, "
+            "consentimento_em, consentimento_versao) VALUES (%s, 'ENCAMINHADA', %s, %s, %s, %s)",
+            (paciente_id, ",".join(perfil.get("deficiencias") or []) or None, "; ".join(motivos) or None,
+             *_consentimento(consentimento)))
         return cur.lastrowid
 
 

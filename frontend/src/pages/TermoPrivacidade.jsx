@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+export const VERSAO_TERMO = "1.0"; // mudar quando o texto do termo mudar
+
 export default function TermoPrivacidade({ aoAceitar }) {
   const [recusou, setRecusou] = useState(false);
 
@@ -27,7 +29,7 @@ export default function TermoPrivacidade({ aoAceitar }) {
           <button type="button" className="botao-continuar botao-recusar" onClick={() => setRecusou(true)}>
             Recusar
           </button>
-          <button type="button" className="botao-continuar" onClick={aoAceitar}>
+          <button type="button" className="botao-continuar" onClick={() => aoAceitar({ aceito_em: new Date().toISOString(), versao_termo: VERSAO_TERMO })}>
             Aceitar e continuar
           </button>
         </div>

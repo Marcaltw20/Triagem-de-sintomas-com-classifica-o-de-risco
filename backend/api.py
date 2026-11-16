@@ -348,7 +348,8 @@ async def gravar_encaminhamento(dados: EncaminhamentoIn):
     perfil = dados.perfil.model_dump() if dados.perfil else {}
     try:
         return {"triagem_id": await run_in_threadpool(banco.salvar_encaminhamento,
-                                                      dados.paciente.model_dump(), perfil, dados.motivos)}
+                                                      dados.paciente.model_dump(), perfil, dados.motivos,
+                                                      dados.consentimento.model_dump() if dados.consentimento else None)}
     except banco.BancoIndisponivel:
         log.warning("Encaminhamento não gravado: banco de dados indisponível")
     except Exception:  # noqa: BLE001
@@ -447,7 +448,8 @@ async def gravar_cancelamento(dados: CancelamentoIn):
     perfil = dados.perfil.model_dump() if dados.perfil else {}
     try:
         return {"triagem_id": await run_in_threadpool(banco.salvar_cancelamento,
-                                                      dados.paciente.model_dump(), perfil, dados.motivo)}
+                                                      dados.paciente.model_dump(), perfil, dados.motivo,
+                                                      dados.consentimento.model_dump() if dados.consentimento else None)}
     except banco.BancoIndisponivel:
         log.warning("Cancelamento não gravado: banco de dados indisponível")
     except Exception:  # noqa: BLE001

@@ -142,6 +142,7 @@ export default function App() {
   const [sintomas, setSintomas] = useState([]);
   const [conversa, setConversa] = useState([]);
   const [relato, setRelato] = useState({ modo: null, resumo: null }); // da conversa, para o banco
+  const [consentimento, setConsentimento] = useState(null); // aceite do termo: { aceito_em, versao_termo }
   const [classificacao, setClassificacao] = useState(null);
   const [classificando, setClassificando] = useState(false);
   const [erroClassificar, setErroClassificar] = useState("");
@@ -233,6 +234,7 @@ export default function App() {
           modo_questionario: relato.modo,
           resumo: relato.resumo,
           conversa,
+          consentimento,
           ...fontes,
         },
       });
@@ -272,6 +274,7 @@ export default function App() {
     setConversa([]);
     setRelato({ modo: null, resumo: null });
     setClassificacao(null);
+    setConsentimento(null);
     setErroClassificar("");
     setTempoReal(config?.modo_padrao !== "classico");
     setEtapa("consentimento");
@@ -427,6 +430,7 @@ export default function App() {
           paciente: { nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.nascimento },
           perfil,
           motivos: motivosEncaminhamento,
+          consentimento,
         })
         .catch(() => {});
       setEtapa("encaminhamento");
@@ -458,6 +462,7 @@ export default function App() {
       paciente: { nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.nascimento },
       perfil,
       motivo,
+      consentimento,
     }).catch(() => {});
     setPresenca(null);
     setMotivoCancelamento(motivo);
@@ -630,7 +635,7 @@ if (etapa === "triagem") {
     return (
       <div className="aplicacao">
         {cabecalho}
-        <TermoPrivacidade aoAceitar={() => setEtapa("identificacao")} />
+        <TermoPrivacidade aoAceitar={(c) => { setConsentimento(c); setEtapa("identificacao"); }} />
       </div>
     );
   }
