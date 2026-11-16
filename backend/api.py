@@ -188,8 +188,7 @@ async def classificar(dados: ClassificarIn):
     try:
         perfil = dados.perfil.model_dump() if dados.perfil else {}
         resultado = classificar_risco(pas=dados.pas, pad=dados.pad, fc=dados.fc,
-                                      spo2=sat, temp=temp, sintomas=dados.sintomas,
-                                      pulso_irregular=dados.pulso_irregular, **perfil)
+                                      spo2=sat, temp=temp, sintomas=dados.sintomas, **perfil)
         resultado["dados"]["temperatura_tipo"] = dados.temp_tipo
         resultado["dados"]["temperatura_timestamp"] = dados.temp_timestamp
     except DadosInvalidos as exc:

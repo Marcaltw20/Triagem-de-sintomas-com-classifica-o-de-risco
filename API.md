@@ -414,7 +414,6 @@ Requisição:
 |---|---|
 | `sintomas` | Chaves do catálogo da árvore |
 | `pas`, `pad`, `fc` | Valores da medição de pressão |
-| `pulso_irregular` | Opcional (`false`); `true` quando o Omron avisou batimento irregular: é "pulso anormal" no Manchester (laranja; com PAS < 90, vermelho) |
 | `spo2`, `temp` | Opcionais; sem valor, o backend usa os do `.env` |
 | `explicar` | `true` no modo clássico (a LLM escreve a explicação); `false` no tempo real |
 | `perfil` | Opcional; idade, sexo e deficiências (veja "Perfil do paciente") |
@@ -454,7 +453,7 @@ Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem grav
     "atendimento_prioritario": true,
     "motivos_prioridade": ["Deficiência visual", "Pessoa idosa (70 anos)"],
     "observacoes": [],
-    "news2": { "total": 0, "pontos": { "fc": 0, "pas": 0, "spo2": 0, "temp": 0 }, "informativo": true },
+    "news2": { "total": 0, "pontos": { "fc": 0, "pas": 0, "spo2": 0, "temp": 0 } },
     "dados": {
       "vitais": { "pas": 128, "pad": 82, "fc": 76, "spo2": 98, "temp": 36.5 },
       "sintomas": ["dor_toracica", "idoso", "sudorese_fria"],
@@ -465,7 +464,7 @@ Resposta (além de `resultado` e `texto`, vem `triagem_id`: o id da triagem grav
 }
 ```
 
-`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou, em menores de 14 anos, que o protocolo usa fluxogramas pediátricos. `news2` é só informativo: não decide a cor. `texto` é a explicação
+`resultado` é exatamente o que `arvore_decisao.classificar_risco` devolve. `atendimento_prioritario` não muda a cor: indica que a pessoa deve ser atendida antes, dentro da mesma cor. `observacoes` traz avisos sobre o perfil, como chaves ignoradas pelo sexo ou o NEWS2 em menores de 16 anos. `texto` é a explicação
 falada; vem `null` quando `explicar` é `false`. Se a OpenAI falhar na explicação, o backend
 monta uma frase padrão a partir do resultado, sem devolver erro.
 
