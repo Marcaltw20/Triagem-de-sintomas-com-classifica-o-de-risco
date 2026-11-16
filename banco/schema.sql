@@ -11,12 +11,12 @@
 --   Paciente                      -> paciente
 --   Triagem                       -> triagem
 --   FatorRisco (7)                -> fator_risco      + triagem_fator_risco (N:N)
---   Sintoma (catálogo, 91)        -> sintoma
+--   Sintoma (catálogo)            -> sintoma (cor = discriminador do protocolo de referência)
 --   SintomaRelatado               -> sintoma_relatado (Triagem 1 -> 0..* , Sintoma 1)
 --   LeituraSinaisVitais           -> leitura_sinais_vitais (Triagem 1 -> 1..*)
 --   Dispositivo                   -> dispositivo      (Leitura 0..* -> 0..1)
 --   ClassificacaoRisco            -> classificacao_risco (Triagem 1 -> 0..1)
---   RegraCombinacao (27)          -> regra_combinacao (regras da ArvoreDecisao)
+--   RegraCombinacao               -> regra_combinacao (combinações da ArvoreDecisao)
 --   CorRisco (enumeração)         -> ENUM nas colunas de cor
 --   AssistenteVoz, ArvoreDecisao  -> serviços (código), sem tabela
 -- Os catálogos (sintoma, fator_risco, regra_combinacao) são preenchidos a partir de
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS classificacao_risco (
   tempo_alvo_min           INT NOT NULL,
   motivo                   VARCHAR(500) NOT NULL,
   achados_secundarios      LONGTEXT NULL,            -- JSON: lista de outras regras que dispararam
-  news2                    INT NULL,
+  news2                    INT NULL,                  -- só informativo: não decide a cor
   atendimento_prioritario  BOOLEAN NOT NULL DEFAULT FALSE,
   data_hora                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_cr_triagem FOREIGN KEY (triagem_id) REFERENCES triagem(id) ON DELETE CASCADE,

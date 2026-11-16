@@ -23,21 +23,28 @@ INTEGRAÇÃO COM A LLM (futuro)
   - A LLM só converte a fala do usuário em sintomas; quem decide a cor é a árvore.
 
 COMO A ÁRVORE DECIDE
-  1. Cada sintoma do CATALOGO (em arvore_decisao.py) tem uma cor-base, como os discriminadores
-     dos fluxogramas de Manchester. São 98 chaves em 12 categorias: fatores de risco, neurológico,
-     coração e circulação, respiratório, digestivo, urinário e reprodutivo, alergia e pele,
-     trauma e acidentes, olhos/ouvidos/nariz/boca, músculos e articulações, saúde mental e geral.
-  2. Os sinais vitais entram pelos limites críticos, pela crise hipertensiva e pelo NEWS2 adaptado.
-  3. Regras de combinação agravam a cor: sintoma + sintoma (dor no peito + suor frio),
-     sintoma + sinal vital (falta de ar + SpO2 93%) e sintoma + fator de risco (febre + imunidade baixa).
-     Ficam nas listas COMBINACOES_ALARME, COMBINACOES_MUITO_URGENTES e COMBINACOES_MODERADAS.
-  4. Vale a regra mais grave; no empate, a que vem primeiro na árvore (N1 -> N6).
-     As demais regras que dispararam voltam em r["outros_achados"].
+  Tudo segue o Protocolo de Classificação de Risco baseado no Manchester (Aparecida de
+  Goiânia, 2025), citado em cada regra do arvore_decisao.py.
+  1. Cada sintoma do CATALOGO tem a cor do discriminador do fluxograma da queixa. São 102
+     chaves em 13 grupos (fatores de risco, duração da queixa, neurológico, coração,
+     respiratório, digestivo, urinário e reprodutivo, alergia e pele, trauma, olhos/ouvidos/
+     nariz/boca, músculos e articulações, saúde mental e geral).
+  2. Dor pela escala do protocolo: dor_leve (1-3) verde, dor_moderada (4-6) amarelo,
+     dor_intensa (7-10) laranja.
+  3. Sinais vitais pela tabela do Anexo III (temperatura pelo Anexo II). Faixa com duas cores:
+     vale a mais grave.
+  4. Combinações só as do protocolo (choque, choque anafilático, dor precordial, falta de ar
+     com SpO2 < 92%, sangramento vaginal na gestação, disúria/dor de garganta com febre), nas
+     listas COMBINACOES_*. Gestação: COMBINACOES_GESTACAO [exceção obstétrica].
+  5. Fatores de risco não mudam a cor. queixa_antiga (> 7 dias): o que daria verde vira azul.
+  6. Vale a cor mais grave; no empate, a regra que vem primeiro (N1 -> N6).
+     As demais regras que dispararam voltam em r["outros_achados"]. O NEWS2 é só informativo.
   A ordem completa está no cabeçalho de arvore_decisao.py.
 
 PARA ACRESCENTAR UM SINTOMA OU UMA REGRA
-  - Sintoma novo: uma linha no CATALOGO (chave, rótulo, descrição, cor-base). O prompt da LLM,
-    o teste manual e a tela passam a conhecê-lo sozinhos.
+  - Sintoma novo: uma linha no CATALOGO (chave, rótulo, descrição, cor-base), com o comentário
+    do fluxograma de onde veio a cor. O prompt da LLM, o teste manual e a tela passam a
+    conhecê-lo sozinhos.
   - Combinação nova: uma linha em uma das listas COMBINACOES_*.
   - Acrescente um caso em testes_automaticos.py.
 

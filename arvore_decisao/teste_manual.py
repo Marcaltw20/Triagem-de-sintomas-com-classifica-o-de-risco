@@ -85,7 +85,7 @@ def mostrar(r):
     print(f"  Tempo-alvo      : {r['tempo_alvo_min']} min")
     print(f"  Orientação      : {r['orientacao']}")
     p = r["news2"]["pontos"]
-    print(f"  NEWS2 adaptado  : {r['news2']['total']} "
+    print(f"  NEWS2 (só info) : {r['news2']['total']} "
           f"(FC {p['fc']} + PAS {p['pas']} + SpO2 {p['spo2']} + Temp {p['temp']})")
     print("=" * 60)
 
