@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS triagem (
   paciente_id         INT NOT NULL,                  -- Paciente 1 "possui" 0..* Triagem
   atendente_id        INT NULL,                      -- Atendente 1 "conduz" 0..* Triagem (NULL = totem sozinho)
   data_hora_inicio    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  duracao_s           INT NULL,                      -- tempo da triagem (da conversa até a classificação), em segundos
   modo_questionario   ENUM('ESCRITO', 'VOZ') NULL,
   resumo_relato       TEXT NULL,
   status              ENUM('EM_ANDAMENTO', 'CONCLUIDA', 'ENCAMINHADA', 'CANCELADA') NOT NULL DEFAULT 'EM_ANDAMENTO',
@@ -81,6 +82,9 @@ ALTER TABLE triagem ADD COLUMN IF NOT EXISTS motivo_cancelamento TEXT NULL AFTER
 -- bancos criados antes do registro do aceite do termo (LGPD)
 ALTER TABLE triagem ADD COLUMN IF NOT EXISTS consentimento_em DATETIME NULL;
 ALTER TABLE triagem ADD COLUMN IF NOT EXISTS consentimento_versao VARCHAR(20) NULL;
+
+-- bancos criados antes de gravar o tempo da triagem
+ALTER TABLE triagem ADD COLUMN IF NOT EXISTS duracao_s INT NULL AFTER data_hora_inicio;
 
 CREATE TABLE IF NOT EXISTS fator_risco (
   chave      VARCHAR(50) PRIMARY KEY,

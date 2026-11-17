@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
 import { formatarTemperatura } from "../temperatura.js";
+import { useCronometro } from "../tempo.js";
 import "./Triagem.css";
 import "./Pressao.css";
 
@@ -17,11 +18,13 @@ export default function Pressao({
   config,
   sintomas,
   tempoReal,
+  inicio,
   dizer,
   classificando,
   erro,
   aoMedir,
 }) {
+  const cronometro = useCronometro(inicio);
   const total = config?.tempo_pressao_s ?? 120;
   const semMedidor = config?.usar_medidor === false;
   const comRelogio = config?.usar_relogio !== false;
@@ -210,6 +213,12 @@ export default function Pressao({
                 : `A assistente registrou ${sintomas.length} ${sintomas.length === 1 ? "sintoma" : "sintomas"}.`}
             </p>
           </div>
+
+          {cronometro && (
+            <div className="triagem-progresso">
+              <small>⏱ Tempo de triagem: {cronometro}</small>
+            </div>
+          )}
         </div>
 
         <div className="pressao-grade">

@@ -95,5 +95,12 @@ export function useMicrofone() {
   // Para a gravação atual (ex.: botão "Terminei de falar")
   const parar = useCallback(() => pararRef.current?.(), []);
 
-  return { gravarFala, parar, garantirPermissao, nivel, gravando };
+  // Para a gravação e fecha o microfone (o navegador deixa de captar); a próxima gravação reabre
+  const desligar = useCallback(() => {
+    pararRef.current?.();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  return { gravarFala, parar, desligar, garantirPermissao, nivel, gravando };
 }

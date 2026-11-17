@@ -135,6 +135,8 @@ class RegistroTriagem(BaseModel):
     spo2_origem: Literal["SENSOR", "MANUAL"] = "MANUAL"
     spo2_experimental: bool = False
     consentimento: Consentimento | None = None
+    inicio_em: str | None = Field(default=None, max_length=40)  # quando a conversa abriu (ISO 8601)
+    duracao_s: int | None = Field(default=None, ge=0, le=86400)  # da conversa até a classificação
 
 
 class ClassificarIn(BaseModel):
@@ -300,6 +302,7 @@ class BancoEstadoOut(BaseModel):
 class TriagemResumo(BaseModel):
     id: int
     data_hora_inicio: str
+    duracao_s: int | None = None  # tempo da triagem, em segundos
     status: str
     modo_questionario: str | None
     paciente: str

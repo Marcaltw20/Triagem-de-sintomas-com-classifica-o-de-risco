@@ -10,6 +10,8 @@ export function useRealtime() {
   const pcRef = useRef(null);
   const canalRef = useRef(null);
   const micRef = useRef(null);
+  const querMicRef = useRef(true);  // a tela quer o microfone ligado (modo "Falar")
+  const falandoRef = useRef(false); // a assistente está falando: microfone desligado até ela terminar
   const audioRef = useRef(null);
   const callbacksRef = useRef({});
   const sessaoRef = useRef(null);
@@ -30,11 +32,17 @@ export function useRealtime() {
           setStatus("pensando");
           break;
         case "output_audio_buffer.started":
+          // enquanto a assistente fala o microfone fica desligado (não capta a própria voz nem ruído)
+          falandoRef.current = true;
+          if (micRef.current) micRef.current.enabled = false;
           setStatus("falando");
           break;
         case "output_audio_buffer.stopped":
         case "output_audio_buffer.cleared":
-          setStatus(micRef.current?.enabled ? "ouvindo" : "parado");
+          falandoRef.current = false;
+          if (micRef.current) micRef.current.enabled = querMicRef.current;
+          enviar({ type: "input_audio_buffer.clear" }); // descarta o que entrou antes de desligar
+          setStatus(querMicRef.current ? "ouvindo" : "parado");
           cb.aoTerminarDeFalar?.();
           break;
         case "conversation.item.input_audio_transcription.completed":
@@ -64,12 +72,14 @@ export function useRealtime() {
         default:
       }
     },
-    []
+    [enviar]
   );
 
   const conectar = useCallback(
     async (callbacks, perfil) => {
       callbacksRef.current = callbacks;
+      querMicRef.current = true;
+      falandoRef.current = false;
 
       const sessao = await criarSessaoRealtime(perfil);
       sessaoRef.current = sessao;
@@ -113,12 +123,14 @@ export function useRealtime() {
     [enviar, tratarEvento]
   );
 
-  // Liga/desliga o microfone e a detecção de fala (desligado durante a medição da pressão)
+  // Liga/desliga o microfone e a detecção de fala (desligado no modo "Escrever" e durante a medição
+  // da pressão). Se a assistente estiver falando, ele só volta quando ela terminar.
   const microfone = useCallback(
     (ligado) => {
-      if (micRef.current) micRef.current.enabled = ligado;
+      querMicRef.current = ligado;
+      if (micRef.current) micRef.current.enabled = ligado && !falandoRef.current;
       enviar({ type: "input_audio_buffer.clear" });
-      if (!ligado) setStatus("parado");
+      if (!ligado && !falandoRef.current) setStatus("parado");
     },
     [enviar]
   );
@@ -162,6 +174,7 @@ export function useRealtime() {
     pcRef.current?.close();
     if (audioRef.current) audioRef.current.srcObject = null;
     pcRef.current = canalRef.current = micRef.current = null;
+    falandoRef.current = false;
     setStatus("parado");
   }, []);
 

@@ -215,17 +215,20 @@ def _id_dispositivo(cur, identificador: str | None) -> int | None:
     return linha["id"] if linha else None
 
 
+def _data_local(texto: Any) -> datetime.datetime | None:
+    """Data e hora ISO 8601 vinda do navegador, no horário local do servidor; None se inválida."""
+    try:
+        quando = datetime.datetime.fromisoformat(str(texto or "").replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return quando.astimezone().replace(tzinfo=None) if quando.tzinfo is not None else quando
+
+
 def _consentimento(c: dict[str, Any] | None) -> tuple[datetime.datetime | None, str | None]:
     """Data e hora do aceite do termo (horário local do servidor) e versão do termo; (None, None) se não veio."""
     if not c:
         return None, None
-    try:
-        quando = datetime.datetime.fromisoformat(str(c.get("aceito_em", "")).replace("Z", "+00:00"))
-        if quando.tzinfo is not None:
-            quando = quando.astimezone().replace(tzinfo=None)
-    except ValueError:
-        quando = None
-    return quando, (c.get("versao_termo") or None)
+    return _data_local(c.get("aceito_em")), (c.get("versao_termo") or None)
 
 
 def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: dict[str, Any]) -> int:
@@ -241,9 +244,11 @@ def salvar_triagem(registro: dict[str, Any], perfil: dict[str, Any], resultado: 
         _sincronizar_dispositivos(cur)
         paciente_id = _salvar_paciente(cur, registro["paciente"], perfil)
         cur.execute(
-            "INSERT INTO triagem (paciente_id, modo_questionario, resumo_relato, status, deficiencias, conversa, "
-            "consentimento_em, consentimento_versao) VALUES (%s, %s, %s, 'CONCLUIDA', %s, %s, %s, %s)",
-            (paciente_id, modo, registro.get("resumo"), ",".join(perfil.get("deficiencias") or []) or None,
+            "INSERT INTO triagem (paciente_id, data_hora_inicio, duracao_s, modo_questionario, resumo_relato, "
+            "status, deficiencias, conversa, consentimento_em, consentimento_versao) "
+            "VALUES (%s, COALESCE(%s, NOW()), %s, %s, %s, 'CONCLUIDA', %s, %s, %s, %s)",
+            (paciente_id, _data_local(registro.get("inicio_em")), registro.get("duracao_s"), modo,
+             registro.get("resumo"), ",".join(perfil.get("deficiencias") or []) or None,
              json.dumps(registro.get("conversa") or [], ensure_ascii=False),
              *_consentimento(registro.get("consentimento"))))
         triagem_id = cur.lastrowid
@@ -328,7 +333,7 @@ def estado() -> dict[str, Any]:
 def ultimas_triagens(limite: int = 10) -> list[dict[str, Any]]:
     with _transacao() as cur:
         cur.execute(
-            "SELECT t.id, t.data_hora_inicio, t.status, t.modo_questionario, p.nome AS paciente, "
+            "SELECT t.id, t.data_hora_inicio, t.duracao_s, t.status, t.modo_questionario, p.nome AS paciente, "
             "c.cor, c.nivel, c.motivo FROM triagem t JOIN paciente p ON p.id = t.paciente_id "
             "LEFT JOIN classificacao_risco c ON c.triagem_id = t.id ORDER BY t.id DESC LIMIT %s", (limite,))
         linhas = cur.fetchall()

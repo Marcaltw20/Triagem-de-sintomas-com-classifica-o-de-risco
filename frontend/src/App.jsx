@@ -15,6 +15,7 @@ import Encaminhamento from "./pages/Encaminhamento";
 import Configuracoes from "./pages/Configuracoes";
 import Cancelada from "./pages/Cancelada";
 import TermoPrivacidade from "./pages/TermoPrivacidade";
+import { agora } from "./tempo.js";
 
 const INTERVALO_PRESENCA_MS = 1000;
 const ETAPAS_VIGIADAS = ["triagem", "pressao"];
@@ -143,6 +144,7 @@ export default function App() {
   const [conversa, setConversa] = useState([]);
   const [relato, setRelato] = useState({ modo: null, resumo: null }); // da conversa, para o banco
   const [consentimento, setConsentimento] = useState(null); // aceite do termo: { aceito_em, versao_termo }
+  const [inicioTriagem, setInicioTriagem] = useState(null); // quando a conversa abriu (ms), para o tempo da triagem
   const [classificacao, setClassificacao] = useState(null);
   const [classificando, setClassificando] = useState(false);
   const [erroClassificar, setErroClassificar] = useState("");
@@ -217,6 +219,7 @@ export default function App() {
   async function finalizar(pressao, vitais, fontes) {
     setClassificando(true);
     setErroClassificar("");
+    const fim = agora(); // o tempo da triagem vai da conversa até o pedido de classificação
     try {
       // idade, sexo e deficiências vão para a árvore (65+ vira o fator de risco "idoso" lá);
       // registro vai só para o banco de dados (identificação, conversa e origem de cada medida)
@@ -235,10 +238,12 @@ export default function App() {
           resumo: relato.resumo,
           conversa,
           consentimento,
+          inicio_em: inicioTriagem ? new Date(inicioTriagem).toISOString() : null,
+          duracao_s: inicioTriagem ? Math.round((fim - inicioTriagem) / 1000) : null,
           ...fontes,
         },
       });
-      setClassificacao({ resultado: r.resultado, texto: r.texto, pressao, vitais });
+      setClassificacao({ resultado: r.resultado, texto: r.texto, pressao, vitais, inicio: inicioTriagem, fim });
       api.encerrarPresenca().catch(() => {}); // triagem concluída: a câmera pode desligar
       setPresenca(null);
       setEtapa("conclusao");
@@ -274,6 +279,7 @@ export default function App() {
     setConversa([]);
     setRelato({ modo: null, resumo: null });
     setClassificacao(null);
+    setInicioTriagem(null);
     setConsentimento(null);
     setErroClassificar("");
     setTempoReal(config?.modo_padrao !== "classico");
@@ -440,6 +446,7 @@ export default function App() {
       setPresenca({ estado: "aguardando_rosto", mensagem: "", ausente_s: 0 });
       api.iniciarPresenca().catch(() => setPresenca(null)); // sem câmera a triagem segue sem vigia
     }
+    setInicioTriagem(agora());
     setEtapa("triagem");
   }
 
@@ -448,6 +455,7 @@ export default function App() {
     api.pararFala();
     api.encerrarPresenca().catch(() => {});
     setPresenca(null);
+    setInicioTriagem(null);
     setTempoReal(config?.modo_padrao !== "classico");
     setEtapa("identificacao");
   }
@@ -511,6 +519,7 @@ if (etapa === "triagem") {
         config={config}
         rt={rt}
         tempoReal={tempoReal}
+        inicio={inicioTriagem}
         aoTrocarModo={setTempoReal}
         aoVoltar={voltarIdentificacao}
         aoConcluir={(lista, historico, dadosRelato) => {
@@ -546,6 +555,7 @@ if (etapa === "triagem") {
         config={config}
         sintomas={sintomas}
         tempoReal={tempoReal}
+        inicio={inicioTriagem}
         dizer={dizer}
         classificando={classificando}
         erro={erroClassificar}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import * as api from "../api.js";
+import { formatarDuracao } from "../tempo.js";
 import "./Triagem.css";
 import "./Configuracoes.css";
 import Usuarios from "./Usuarios.jsx";
@@ -570,6 +571,7 @@ function Painel({ admin, aoSair, aoExpirar }) {
                       <tr>
                         <th>#</th>
                         <th>Data</th>
+                        <th>Tempo</th>
                         <th>Paciente</th>
                         <th>Situação</th>
                         <th>Classificação</th>
@@ -580,6 +582,7 @@ function Painel({ admin, aoSair, aoExpirar }) {
                         <tr key={t.id}>
                           <td>{t.id}</td>
                           <td>{new Date(t.data_hora_inicio).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
+                          <td>{t.duracao_s != null ? formatarDuracao(t.duracao_s * 1000) : "—"}</td>
                           <td>{t.paciente}</td>
                           <td>{t.status === "ENCAMINHADA" ? "Encaminhada" : t.status === "CONCLUIDA" ? "Concluída" : t.status}</td>
                           <td>

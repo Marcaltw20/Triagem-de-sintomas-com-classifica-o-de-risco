@@ -1,6 +1,7 @@
 
 import "./Conclusao.css";
 import { formatarTemperatura, formatarTextoTemperatura } from "../temperatura.js";
+import { formatarDuracao } from "../tempo.js";
 
 // Resultado da triagem: a cor que a árvore de decisão escolheu (POST /api/classificar),
 // os dados usados e a conversa com a assistente.
@@ -40,6 +41,8 @@ export default function Conclusao({
   const vitais = classificacao?.vitais;
   const nomeSintoma = (chave) => config?.nomes_sintomas?.[chave] ?? chave;
   const sintomasUsados = r?.dados?.sintomas ?? sintomas;
+  const { inicio, fim } = classificacao ?? {};
+  const hora = (ms) => new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="conclusao-pagina">
@@ -169,6 +172,18 @@ export default function Conclusao({
             <div>
               <span>Temperatura</span>
               <strong>{vitais ? `${formatarTemperatura(vitais.temp)} °C` : "—"}</strong>
+            </div>
+
+            <div>
+              <span>Data da triagem</span>
+              <strong>
+                {inicio ? `${new Date(inicio).toLocaleDateString("pt-BR")}, das ${hora(inicio)} às ${hora(fim)}` : "—"}
+              </strong>
+            </div>
+
+            <div>
+              <span>Tempo de triagem</span>
+              <strong>{inicio ? formatarDuracao(fim - inicio) : "—"}</strong>
             </div>
           </div>
 

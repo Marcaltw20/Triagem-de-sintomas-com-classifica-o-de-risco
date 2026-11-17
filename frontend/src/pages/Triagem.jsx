@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
 import { useMicrofone } from "../useMicrofone.js";
+import { useCronometro } from "../tempo.js";
 import "./Triagem.css";
 
 // Conversa com a assistente (LLM), por voz ou por escrito.
@@ -23,7 +24,7 @@ const STATUS = {
   ouvindo: "Ouvindo... pode falar",
   transcrevendo: "Entendendo o que você disse...",
   pensando: "A assistente está pensando...",
-  falando: "A assistente está falando...",
+  falando: "A assistente está falando... (microfone desligado)",
   parado: "Microfone pausado",
 };
 
@@ -33,11 +34,13 @@ export default function Triagem({
   config,
   rt,
   tempoReal,
+  inicio,
   aoTrocarModo,
   aoConcluir,
   aoVoltar,
 }) {
   const mic = useMicrofone();
+  const cronometro = useCronometro(inicio);
   const primeiroNome = paciente?.nome?.split(" ")[0] || "paciente";
   const nomeExibicao = primeiroNome.charAt(0) + primeiroNome.slice(1).toLowerCase();
 
@@ -98,6 +101,7 @@ export default function Triagem({
       return;
     }
     setStatus("falando");
+    mic.desligar(); // não capta enquanto a assistente fala; volta na próxima vez que for ouvir
     try {
       await api.falar(texto);
     } catch (e) {
@@ -212,7 +216,8 @@ export default function Triagem({
       return;
     }
     falarRef.current = false;
-    mic.parar();
+    mic.desligar();
+    setStatus((s) => (s === "ouvindo" ? "parado" : s)); // se a assistente estiver pensando/falando, segue
   }
 
   function ouvirPergunta() {
@@ -271,7 +276,7 @@ export default function Triagem({
 
     return () => {
       falarRef.current = false;
-      mic.parar();
+      mic.desligar();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -334,6 +339,7 @@ export default function Triagem({
             <small>
               {perguntas} {perguntas === 1 ? "pergunta" : "perguntas"} · {tempoReal ? "voz em tempo real" : "modo clássico"}
             </small>
+            {cronometro && <small>⏱ Tempo de triagem: {cronometro}</small>}
           </div>
         </div>
 
